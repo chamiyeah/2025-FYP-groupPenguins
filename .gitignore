@@ -172,4 +172,8 @@ cython_debug/
 
 #Dataset
 data/
+
+
+#misc for devs
 .qodo
+result/

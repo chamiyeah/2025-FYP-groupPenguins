@@ -1,14 +1,20 @@
 import cv2
 import numpy as np
 import os
-from concurrent.futures import ThreadPoolExecutor
+from concurrent.futures import ThreadPoolExecutor, as_completed
 import pandas as pd
+from tqdm import tqdm
+from codecarbon import EmissionsTracker
+import time
+from datetime import datetime
+from util.inpaint_util import removeHair
+from util.img_util import readImageFile
+from util.img_util import readImageFile, saveImageFile
 from util.feature_extract import (measure_pigment_network, measure_blue_veil, 
                                      measure_vascular, measure_globules, measure_streaks,
                                      measure_irregular_pigmentation, measure_regression,
                                      get_asymmetry, get_compactness, convexity_score)
-from util.inpaint_util import removeHair
-from util.img_util import readImageFile
+
 
 def process_single_image(image_path, mask_path, output_dir):
   #Process one image with its mask and extract features.
@@ -56,31 +62,66 @@ def process_single_image(image_path, mask_path, output_dir):
 
 def process_image_dataset(input_dir, mask_dir, output_dir, n_threads=8):
    #Parrarel processing and feature extract 
-    
+
     # output dir sanity check
     os.makedirs(output_dir, exist_ok=True)
+
+
+    # Start carbon tracking
+    tracker = EmissionsTracker(project_name="Masking and feature extraction",
+                              output_dir=output_dir,
+                              log_level='warning')
+    tracker.start()
+    start_time = time.time()
+    print("Carbon Tracker Strated... ")
+    
     
     # Get list of images
+    print("Scanning input directories...")
     image_files = [f for f in os.listdir(input_dir) if f.endswith('.png') and not f.endswith('_mask.png')]
+    total_images = len(image_files)
+    
+    print(f"Found {total_images} images to process")
+    
     
     # Name maching for image and mask
     image_paths = [os.path.join(input_dir, f) for f in image_files]
     mask_paths = [os.path.join(mask_dir, f.replace('.png', '_mask.png')) for f in image_files]
     
     features_dict = {}
+    successful = 0
+    failed = 0
     
+    # Main progress bar
+    pbar = tqdm(total=total_images, desc="Processing Images", 
+                bar_format="{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}<{remaining}, {rate_fmt}]")
+        
+        
     # Process images in parallel
     with ThreadPoolExecutor(max_workers=n_threads) as executor:
-        futures = []
-        for img_path, mask_path in zip(image_paths, mask_paths):
-            future = executor.submit(process_single_image, img_path, mask_path, output_dir)
-            futures.append(future)
+        future_to_path = {
+            executor.submit(process_single_image, img_path, mask_path, output_dir): img_path
+            for img_path, mask_path in zip(image_paths, mask_paths)
+        }
         
-        # Collect results
-        for future in futures:
-            filename, features = future.result()
-            if features is not None:
-                features_dict[filename] = features
+        for future in as_completed(future_to_path):
+            img_path = future_to_path[future]
+            try:
+                filename, features = future.result()
+                if features is not None:
+                    features_dict[filename] = features
+                    successful += 1
+                else:
+                    failed += 1
+                pbar.set_postfix({"Success": successful, "Failed": failed})
+                pbar.update(1)
+                
+            except Exception as e:
+                print(f"Error processing {img_path}: {str(e)}")
+                failed += 1
+                pbar.update(1)
+    
+    pbar.close()
     
     # Pndas DF
     df = pd.DataFrame.from_dict(features_dict, orient='index')
@@ -88,13 +129,65 @@ def process_image_dataset(input_dir, mask_dir, output_dir, n_threads=8):
     # Save features
     df.to_csv(os.path.join(output_dir, 'extracted_features.csv'), index=False)
     
+    
+    
+    # Carbon tracking results
+    emissions = tracker.stop()
+    end_time = time.time()
+    process_time = end_time - start_time
+
+    try:
+        energy_consumed = tracker.final_energy_consumed
+    except AttributeError:
+        try:
+            energy_consumed = tracker.get_energy_consumed()
+        except AttributeError:
+            energy_consumed = 0
+            print("Warning: Could not retrieve energy consumption data")
+
+    print("\n" + "="*50)
+    print("PROCESSING SUMMARY")
+    print("="*50)
+    print(f"Total images processed: {total_images}")
+    print(f"Successfully processed: {successful}")
+    print(f"Failed: {failed}")
+    print(f"Processing time: {process_time:.2f} seconds")
+    print(f"Processing speed: {total_images/process_time:.2f} images/second")
+    print("\n" + "="*50)
+    print("ENVIRONMENTAL IMPACT")
+    print("="*50)
+    print(f"Carbon emissions: {emissions:.6f} kg CO2")
+    print(f"Energy consumed: {energy_consumed:.2f} kWh")
+    print(f"Carbon intensity: {emissions/total_images*1000:.2f} g CO2/image")
+    print("="*50)
+    
+    # Save carbon report
+    log_dir = os.path.join(os.path.dirname(os.path.dirname(output_dir)), 'energy_data_logs')
+    os.makedirs(log_dir, exist_ok=True)
+    
+    # filenames wit timestamp
+    timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+    report_filename = f'environmental_report_{timestamp}.txt'
+    report_path = os.path.join(log_dir, report_filename)
+    
+    with open(report_path, 'w') as f:
+        f.write(f"Environmental Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write(f"Environmental Report - {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}\n")
+        f.write("="*50 + "\n")
+        f.write(f"Total images processed: {total_images}\n")
+        f.write(f"Carbon emissions: {emissions:.6f} kg CO2\n")
+        f.write(f"Energy consumed: {energy_consumed:.2f} kWh\n")
+        f.write(f"Carbon intensity: {emissions/total_images*1000:.2f} g CO2/image\n")
+        f.write("="*50 + "\n")   
+
+    
     return df
 
 if __name__ == "__main__":
 
     INPUT_DIR = "data\skin_images"
     MASK_DIR = "data\lesion_masks"
-    OUTPUT_DIR = "data\masked_out_images"
+    OUTPUT_DIR = "result\masked_out_images"
     
     features_df = process_image_dataset(INPUT_DIR, MASK_DIR, OUTPUT_DIR)
     print(f"Processed {len(features_df)} images")
