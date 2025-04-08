@@ -17,6 +17,42 @@ from statistics import variance, stdev
 from scipy.spatial import ConvexHull
 
 
+# pigment_network: Percentage (0-100%)
+# Coverage percentage of pigment network in the lesion
+
+# blue_veil: Pixel count
+# Number of pixels meeting blue-veil criteria
+
+# vascular: Pixel count
+# Number of pixels identified as vascular structures
+
+# globules: Count
+# Number of distinct globular structures detected
+
+# streaks: Ratio (dimensionless)
+# Border irregularity measure (perimeter²/4πarea)
+# Value 0.0 indicates no significant streaks
+
+# irregular_pigmentation: Percentage (0-100%)
+# Coverage percentage of irregular pigmentation
+# Value 65.62% shows significant irregular pigmentation
+
+# regression: Pixel count
+# Number of pixels showing regression structures
+# Value 0.0 indicates no regression areas
+
+# asymmetry: Ratio (0-1)
+# Measure of lesion asymmetry
+# (0=perfectly symmetric, 1=highly asymmetric)
+
+# compactness: Ratio (perimeter²/4πarea)
+# Measure of border irregularity
+
+# convexity: Ratio (0-1)
+# Ratio of lesion area to its convex hull area
+# (1=perfectly convex)
+
+
 def measure_pigment_network(image):
 
     lab_image = cv2.cvtColor(image, cv2.COLOR_BGR2LAB)

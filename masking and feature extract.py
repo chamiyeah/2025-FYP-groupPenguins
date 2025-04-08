@@ -19,46 +19,52 @@ from util.feature_extract import (measure_pigment_network, measure_blue_veil,
 def process_single_image(image_path, mask_path, output_dir):
   #Process one image with its mask and extract features.
     
-    # Read image and mask
-    image = cv2.imread(image_path, cv2.IMREAD_COLOR)
-    mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
-    
-    if image is None or mask is None:
+    try:
+        # Read image using img_util
+        image_rgb, img_gray = readImageFile(image_path)
+        if image_rgb is None or img_gray is None:
+            return None, None
+            
+        # Read mask
+        mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
+        if mask is None:
+            return None, None
+        
+        # Hair removal (convert to BGR for removeHair function)
+        image_bgr = cv2.cvtColor(image_rgb, cv2.COLOR_RGB2BGR)
+        _, _, image_no_hair = removeHair(image_bgr, img_gray, kernel_size=25, threshold=10, radius=3)
+        
+        # Create RGBA image with transparency
+        rgba = cv2.cvtColor(image_no_hair, cv2.COLOR_BGR2BGRA)
+        rgba[:, :, 3] = mask
+        
+        # Save masked image
+        filename = os.path.basename(image_path)
+        output_path = os.path.join(output_dir, f"masked_{filename}")
+        cv2.imwrite(output_path, rgba, [cv2.IMWRITE_PNG_COMPRESSION, 5])
+        
+        # Extract features (convert back to RGB for feature extraction)
+        image_no_hair_rgb = cv2.cvtColor(image_no_hair, cv2.COLOR_BGR2RGB)
+        features = {
+            'image_name': filename,
+            'pigment_network': float(measure_pigment_network(image_no_hair_rgb)),
+            'blue_veil': float(measure_blue_veil(image_no_hair_rgb)),
+            'vascular': float(measure_vascular(image_no_hair_rgb)),
+            'globules': float(measure_globules(image_no_hair_rgb)),
+            'streaks': float(measure_streaks(image_no_hair_rgb)),
+            'irregular_pigmentation': float(measure_irregular_pigmentation(image_no_hair_rgb)),
+            'regression': float(measure_regression(image_no_hair_rgb)),
+            'asymmetry': float(get_asymmetry(mask)),
+            'compactness': float(get_compactness(mask)),
+            'convexity': float(convexity_score(mask))
+        }
+        
+        return filename, features
+        
+    except Exception as e:
+        print(f"Error processing {image_path}: {str(e)}")
         return None, None
     
-    # Convert to grayscale for hair removal
-    img_gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
-    
-    # Hair removal
-    _, _, image_no_hair = removeHair(image, img_gray, kernel_size=25, threshold=10, radius=3)
-    
-    # Create RGBA image with transparency
-    rgba = cv2.cvtColor(image_no_hair, cv2.COLOR_BGR2BGRA)
-    
-    # Set alpha channel based on mask
-    rgba[:, :, 3] = mask
-    
-    # Save masked image
-    filename = os.path.basename(image_path)
-    output_path = os.path.join(output_dir, f"masked_{filename}")
-    cv2.imwrite(output_path, rgba)
-    
-    # Extract features
-    features = {
-        'image_name': filename,
-        'pigment_network': measure_pigment_network(image_no_hair),
-        'blue_veil': measure_blue_veil(image_no_hair),
-        'vascular': measure_vascular(image_no_hair),
-        'globules': measure_globules(image_no_hair),
-        'streaks': measure_streaks(image_no_hair),
-        'irregular_pigmentation': measure_irregular_pigmentation(image_no_hair),
-        'regression': measure_regression(image_no_hair),
-        'asymmetry': get_asymmetry(mask),
-        'compactness': get_compactness(mask),
-        'convexity': convexity_score(mask)
-    }
-    
-    return filename, features
 
 def process_image_dataset(input_dir, mask_dir, output_dir, n_threads=8):
    #Parrarel processing and feature extract 
@@ -73,15 +79,16 @@ def process_image_dataset(input_dir, mask_dir, output_dir, n_threads=8):
                               log_level='warning')
     tracker.start()
     start_time = time.time()
-    print("Carbon Tracker Strated... ")
+    print("\033[32mCarbon Tracker Strated... \033", end='\n')
     
     
     # Get list of images
-    print("Scanning input directories...")
+    print("\033[33mScanning input directories... \033", end='\n')
     image_files = [f for f in os.listdir(input_dir) if f.endswith('.png') and not f.endswith('_mask.png')]
     total_images = len(image_files)
     
-    print(f"Found {total_images} images to process")
+    print(f"\033[35mFound {total_images} images to process\032[0m", end='\n')
+    print("\033[37m\n \032[0m")
     
     
     # Name maching for image and mask
@@ -135,6 +142,7 @@ def process_image_dataset(input_dir, mask_dir, output_dir, n_threads=8):
     emissions = tracker.stop()
     end_time = time.time()
     process_time = end_time - start_time
+    print("\033[32mCarbon Tracker Killed... \032[0m", end='\n')
 
     try:
         energy_consumed = tracker.final_energy_consumed
@@ -190,4 +198,4 @@ if __name__ == "__main__":
     OUTPUT_DIR = "result\masked_out_images"
     
     features_df = process_image_dataset(INPUT_DIR, MASK_DIR, OUTPUT_DIR)
-    print(f"Processed {len(features_df)} images")
+    print(f"\033[35mProcessed {len(features_df)} images\033")
