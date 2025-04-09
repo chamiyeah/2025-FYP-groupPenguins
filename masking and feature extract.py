@@ -199,3 +199,4 @@ if __name__ == "__main__":
     
     features_df = process_image_dataset(INPUT_DIR, MASK_DIR, OUTPUT_DIR)
     print(f"\033[35mProcessed {len(features_df)} images\033")
+    #test
