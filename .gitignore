@@ -172,8 +172,10 @@ cython_debug/
 
 #Dataset
 data/
+result/masked_out_images/
 
 
 #misc for devs
 .qodo
 result/
+app.py
