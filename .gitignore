@@ -177,3 +177,4 @@ data/
 #misc for devs
 .qodo
 result/
+app.py
