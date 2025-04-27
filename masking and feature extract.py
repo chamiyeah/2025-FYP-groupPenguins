@@ -193,7 +193,7 @@ def process_image_dataset(input_dir, mask_dir, output_dir, n_threads=8):
 
 if __name__ == "__main__":
 
-    INPUT_DIR = "data\skin_images"
+    INPUT_DIR = "data\skin_images\test"
     MASK_DIR = "data\lesion_masks"
     OUTPUT_DIR = "result\masked_out_images"
     

@@ -1,5 +1,4 @@
-import random
-
+import random, os
 import cv2
 
 
@@ -12,6 +11,7 @@ def readImageFile(file_path):
 
     # convert the original image to grayscale
     img_gray = cv2.cvtColor(img_rgb, cv2.COLOR_RGB2GRAY)
+    print('images were loaded')
 
     return img_rgb, img_gray
 
@@ -37,9 +37,8 @@ class ImageDataLoader:
         self.directory = directory
         self.shuffle = shuffle
         self.transform = transform
-
         # get a sorted list of all files in the directory
-        # fill in with your own code below
+        self.file_list = sorted([f for f in os.listdir(directory) if os.path.isfile(os.path.join(directory, f))])
 
         if not self.file_list:
             raise ValueError("No image files found in the directory.")
@@ -55,5 +54,12 @@ class ImageDataLoader:
         return self.num_batches
 
     def __iter__(self):
-        # fill in with your own code below
-        pass
+        for f in self.file_list:
+            file_path = os.path.join(self.directory, f)
+            img_rgb, img_gray = readImageFile(file_path)
+
+            if self.transform: #if transformation function is provided
+                img_rgb = self.transform(img_rgb)
+                img_gray = self.transform(img_gray)
+
+            yield img_rgb, img_gray
