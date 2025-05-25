@@ -9,15 +9,13 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import StandardScaler
 
 def compute_metrics(y_true, y_pred, y_prob=None):
-#Compute classification metrics
+    """Compute classification metrics for multiclass classification"""
     metrics = {
         'accuracy': accuracy_score(y_true, y_pred),
-        'precision': precision_score(y_true, y_pred),
-        'recall': recall_score(y_true, y_pred),
-        'f1': f1_score(y_true, y_pred)
+        'precision': precision_score(y_true, y_pred, average='weighted'),
+        'recall': recall_score(y_true, y_pred, average='weighted'),
+        'f1': f1_score(y_true, y_pred, average='weighted')
     }
-    if y_prob is not None:
-        metrics['roc_auc'] = roc_auc_score(y_true, y_prob)
     return metrics
 
 def main(features_path, label_path, save_path):
@@ -29,7 +27,6 @@ def main(features_path, label_path, save_path):
         label_path: Path to the dataset CSV containing labels
         save_path: Path to save the results
     """
-    
     
     #load extracted features
     print("Loading data...")
@@ -45,12 +42,11 @@ def main(features_path, label_path, save_path):
         print(f"Error: One of the input files is empty")
         return
     
-    
     #merge features with labels
     print("Processing loaded data...")
     features_df['image_name'] = features_df['image_name'].str.replace('_mask', '')  # Remove _mask if present !!!
-    merged_df = pd.merge(features_df, labels_df[['filename', 'label']], 
-                        left_on='image_name', right_on='filename', how='inner')
+    merged_df = pd.merge(features_df, labels_df[['img_id', 'diagnostic']], 
+                        left_on='image_name', right_on='img_id', how='inner')
     
     if merged_df.empty:
         print("Error: No matching records found after merging features with labels")
@@ -72,18 +68,83 @@ def main(features_path, label_path, save_path):
             return
     
     X = merged_df[feature_columns]
-    y = merged_df['label']
+    y = merged_df['diagnostic']
       
-    #Standardize features
+    #standardizing the features
+    print("Standardizing features...")
+    scaler = StandardScaler()
+    X_scaled = scaler.fit_transform(X)
     
-    # Split the dataset
     
-    #train classifier
+    #splitting the dataste to train ¤ test 
+    #from sklearn.model_selection import train_test_split < use this if the below giving erro r
     
-    #pridictions 
+    print("Splitting dataset...")
+    X_train, X_test, y_train, y_test = train_test_split(X_scaled, y, test_size=0.3, random_state=42)
     
-    #metrics
+    #classifier training 
+    print("Training Logistic Regression classifier...")
+    clf = LogisticRegression(max_iter=1000, verbose=1)
+    clf.fit(X_train, y_train)
     
-    #save predictions and metrics
-     
-     
+    #make predictions - hooraaa !!
+    print("\nMaking predictions...")
+    y_pred = clf.predict(X_test)
+    y_prob = clf.predict_proba(X_test)[:, 1]  # <<< Probability of positive class !!! 
+    
+    # Calculate metrics
+    print("\nCalculating metrics...")
+    metrics = compute_metrics(y_test, y_pred, y_prob)
+    cm = confusion_matrix(y_test, y_pred)
+    report = classification_report(y_test, y_pred)
+    
+    print("\nResults:")
+    print("-" * 50)
+    print(f"Test Accuracy: {metrics['accuracy']:.4f}")
+    print(f"Precision: {metrics['precision']:.4f}")
+    print(f"Recall: {metrics['recall']:.4f}")
+    print(f"F1 Score: {metrics['f1']:.4f}")
+    print("\nConfusion Matrix:")
+    print(cm)
+    print("\nClassification Report:")
+    print(report)
+    
+    #feature imoortance calc.
+    feature_importance = pd.DataFrame({
+        'feature': feature_columns,
+        'importance': np.abs(clf.coef_[0])
+    }).sort_values('importance', ascending=False)
+    
+    print("\nFeature Importance:")
+    print(feature_importance)
+    
+    
+    #Saving results - has broken in to small blocks of code for eaiser tracking 
+    
+    print("\nSaving results...")
+    test_indices = merged_df.index[y_test.index]
+    result_df = merged_df.loc[test_indices, ['image_name', 'diagnostic']].copy()
+    result_df['predicted_label'] = y_pred
+    result_df['predicted_probability'] = y_prob
+    result_df['correct_prediction'] = result_df['diagnostic'] == result_df['predicted_label']
+    
+    #add all metriks 
+    for metric_name, metric_value in metrics.items():
+        result_df[f'metric_{metric_name}'] = metric_value
+    
+    #savepredictions and metrics s 
+    result_df.to_csv(save_path, index=False)
+    print(f"Results saved to: {save_path}")
+    
+    #save feature importance to a separate file
+    importance_path = save_path.replace('.csv', '_feature_importance.csv')
+    feature_importance.to_csv(importance_path, index=False)
+    print(f"Feature importance saved to: {importance_path}")
+
+if __name__ == "__main__":#
+    features_path = "result/masked_out_images/extracted_features.csv"
+    label_path = "dataset.csv"
+    save_path = "result/result_main_baseline.csv"
+    
+    main(features_path, label_path, save_path)
+
