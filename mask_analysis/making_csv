@@ -1,0 +1,15 @@
+import os
+import pandas as pd
+
+folder_path = "C:/Users/ashan/Desktop/Total images"
+save_path = "C:/Users/ashan/Desktop/ProjectDataScience/2025-FYP-Final-Penguins/mask_analysis"
+
+file_names = sorted([f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))])
+
+df = pd.DataFrame(file_names, columns=["Filename"])
+
+df["Exclude"] = 0
+df["Remake mask"] = 0
+
+output_path = os.path.join(save_path, "mask_analysis.csv")
+df.to_csv(output_path, index=False)
