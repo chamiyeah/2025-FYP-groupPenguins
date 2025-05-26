@@ -4,9 +4,9 @@ import pandas as pd
 import numpy as np
 from util.img_util import readImageFile, saveImageFile, ImageDataLoader
 
-image_dir = './data/skin_images/part_1/'
+image_dir = './data/skin_images/part_3/'
 mask_dir = './data/lesion_masks/'
-output_dir = './masked_out_lesions/'
+output_dir = './masked_3/'
 
 files = ImageDataLoader(image_dir)
 image_list = files.file_list
@@ -35,7 +35,6 @@ for name in image_list:
     output_name = f"{base_name}_chopped.png"
     output_path = os.path.join(output_dir, output_name)
     success = cv2.imwrite(output_path, masked_img)
-
 
 
 
