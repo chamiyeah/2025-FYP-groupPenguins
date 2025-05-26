@@ -1,0 +1,8 @@
+Environmental Report - 2025-04-09 12:48:53
+Environmental Report - 2025-04-09 12:48:53
+==================================================
+Total images processed: 5
+Carbon emissions: 0.000105 kg CO2
+Energy consumed: 0.00 kWh
+Carbon intensity: 0.02 g CO2/image
+==================================================
