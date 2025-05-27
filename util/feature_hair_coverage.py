@@ -2,7 +2,7 @@ import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 
-def hair_coverage(img_org, visual = False): #img_org is a grayscale image
+def hair_coverage(img_org): #img_org is a grayscale image
 
     #reduces image noise, skin texture, and small bumps before edge detection
     blurred = cv2.GaussianBlur(img_org, (7,7), 0) 
