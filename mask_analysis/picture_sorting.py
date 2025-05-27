@@ -2,6 +2,10 @@ import os
 import pandas as pd
 import shutil
 
+# Sorts the images and masks into files based on the mask analysis file after being filled out
+# Images divided into: Filtered images if they are fine, or excluded images if they were deemed unfit for the project
+# Masks were divided into: Correct masks if everything is fine, or badly made masks if they need to be redone.
+
 base_path = os.path.dirname(__file__)
 
 csv_path = os.path.join(base_path, "mask_analysis.csv")
@@ -44,9 +48,9 @@ for _, row in df.iterrows():
         continue
     
     if row["Remake mask"] == 1:
-        dst_mask = os.path.join(masks_bad_path, filename)
+        dst_mask = os.path.join(masks_bad_path, mask_name)
     else:
-        dst_mask = os.path.join(masks_good_path, filename)
+        dst_mask = os.path.join(masks_good_path, mask_name)
 
     shutil.copy2(src_mask, dst_mask)
 

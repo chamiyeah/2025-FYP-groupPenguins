@@ -19,4 +19,9 @@ df["Exclude"] = 0
 df["Remake mask"] = 0
 
 output_path = os.path.join(save_path, "mask_analysis.csv")
-df.to_csv(output_path, index=False)
+if not os.path.exists(output_path):
+    df.to_csv(output_path, index=False)
+    print("mask_analysis.csv created.")
+else:
+    print("mask_analysis.csv already exists — not overwritten.")
+

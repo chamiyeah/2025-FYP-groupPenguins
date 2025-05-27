@@ -179,7 +179,8 @@ masked_feature/
 masked_noncancer/
 masked_out_lesions/
 masked_cancer/
-
+masked_2/
+masked_3/
 
 #misc for devs
 .qodo
