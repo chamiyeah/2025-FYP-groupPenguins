@@ -6,6 +6,8 @@ import shutil
 # Images divided into: Filtered images if they are fine, or excluded images if they were deemed unfit for the project
 # Masks were divided into: Correct masks if everything is fine, or badly made masks if they need to be redone.
 
+#Requires all the lesion images to be inside the "skin_images" folder in the exisiting folder called "data"
+
 base_path = os.path.dirname(__file__)
 
 csv_path = os.path.join(base_path, "mask_analysis.csv")
