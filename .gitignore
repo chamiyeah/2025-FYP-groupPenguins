@@ -172,6 +172,13 @@ cython_debug/
 
 #Dataset
 data/
+mask_analysis/*_Images/
+mask_analysis/Masks/
+mask_analysis/Badly_Made_Masks/masked_cancer/
+masked_feature/
+masked_noncancer/
+masked_out_lesions/
+masked_cancer/
 
 
 #misc for devs
