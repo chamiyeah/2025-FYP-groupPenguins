@@ -5,6 +5,9 @@ import matplotlib.pyplot as plt
 
 #Boarder extraction feature using classical compactness formula, but optimized courner detection techniques
 def B_compactness(mask):#where m is a gray scale mask
+    if mask is None or np.all(mask == 0) or np.all(mask == 1): #check if mask exists
+        return np.nan    
+    
     #function used to find all detected borders, shapes
     contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     #extracting the largest boarder, furthest from the center with largest area

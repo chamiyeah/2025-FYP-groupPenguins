@@ -153,6 +153,9 @@ def get_color_vector(image, mask, downsizing_factor = 0.4, n_segments = 50, comp
 # IMPORTANT THAT THE BINARY MASK IS 2D    
 # downsize first!! improves running time significantly
 
+    if mask is None or np.all(mask == 0) or np.all(mask == 1):
+        return np.full(6, np.nan)
+
     image, mask = downsizing(image, mask, downsizing_factor)
 
     slic_segments = slic_segmentation(image, mask, n_segments, compactness)

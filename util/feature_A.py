@@ -11,6 +11,7 @@ asymetry each time"""
 def cut_mask(mask):
     """Removing big part of black background to avoid misleading 
     asymetry and computational cost"""
+    
     rows = np.any(mask, axis=1) #rows that have white pixels
     cols = np.any(mask, axis=0) #columns that have white pixels
 
@@ -78,8 +79,9 @@ def rotation_asymmetry(mask, n=4):
 
 def mean_asymmetry(mask, rotations=4):
 
-    if mask is None: #check if mask exists
-        return np.nan
+    if mask is None or np.all(mask == 0) or np.all(mask == 1): #check if mask exists
+        return np.nan    
+
     mask = (mask > 0).astype(np.uint8) #binarizing because mask is in gray scale
 
     scores = rotation_asymmetry(mask, rotations)
