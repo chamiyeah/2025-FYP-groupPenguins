@@ -23,7 +23,7 @@ good_pics = pd.read_csv(process_images).rename(columns={"Filename": "img_id"})
 filtered = good_pics.merge(metadata, on='img_id', how='left')
 
 # Create 'cancer' column: True if diagnosis is SCC, BCC, or MEL
-filtered['cancer'] = metadata['diagnostic'].isin(['BCC', 'MEL', 'SCC'])
+filtered['cancer'] = filtered['diagnostic'].isin(['BCC', 'MEL', 'SCC'])
 
 # Choose the columns were gonna need
 filtered = filtered[['img_id', 'patient_id', 'cancer']]
@@ -59,7 +59,7 @@ for _, row in filtered.iterrows():
         if mask is None:
             continue
 
-        # THIS MIGHT BE REMOVED LATER ON!!!  (we ignore lesions that are multiple and small because the asymmetry border and color)  
+        # THIS MIGHT BE REMOVED LATER ON!!!  (we ignore lesions that are multiple and small because the asymmetry border and color are not gonna be trustworthy)
         contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
         if len(contours) > 1:
             continue
@@ -78,11 +78,13 @@ for _, row in filtered.iterrows():
             'asymmetry': asymmetry
         }
 
-        color_labels = ['White', 'Black', 'Red', 'Light-brown', 'Dark-brown', 'Blue-gray']
-        for i, label in enumerate(color_labels):
-            result[f'{label}'] = color_vector[i]
+        final_result = {**result, **color_vector}
 
-        rows.append(result)
+        # color_labels = ['White', 'Black', 'Red', 'Light-brown', 'Dark-brown', 'Blue-gray']
+        # for i, label in enumerate(color_labels):
+        #     result[f'{label}'] = color_vector[i]
+
+        rows.append(final_result)
 
     except:
         continue

@@ -3,7 +3,7 @@ import numpy as np
 from math import nan
 from skimage.segmentation import slic
 from skimage.color import rgb2hsv
-from scipy.stats import circmean
+from scipy.stats import circmean, circstd
 from skimage.color import rgb2hsv
 import numpy as np
 
@@ -125,10 +125,35 @@ def get_hsv_means(image, slic_segments):
     return hsv_means #each entry corresponds to one superpixel (labeled form 1 to n_segments) and contains its average HSV color.
 
 
-def match_melanoma_colors_hsv(hsv_means, kasmi_threshold=0.2):
+#getting superpixels only doesnt seem to work, so we need to get an avg color of the lesion as well as stad dev: the higher, the more irregular color is in the picture
+def avg_std_hsv(hsv_means):
+    hsv_array = np.array(hsv_means)  # shape (n_superpixels, 3)
+
+    # Handle circular mean/std for Hue
+    mean_h = circmean(hsv_array[:, 0], high=1, low=0, nan_policy='omit')
+    std_h = circstd(hsv_array[:, 0], high=1, low=0, nan_policy='omit')
+
+    # Linear mean/std for Saturation and Value
+    mean_s = np.mean(hsv_array[:, 1])
+    std_s = np.std(hsv_array[:, 1])
+    mean_v = np.mean(hsv_array[:, 2])
+    std_v = np.std(hsv_array[:, 2])
+
+    return {
+        'mean_H': mean_h,
+        'std_H': std_h,
+        'mean_S': mean_s,
+        'std_S': std_s,
+        'mean_V': mean_v,
+        'std_V': std_v
+    }
+
+
+def match_melanoma_colors_hsv(hsv_means, kasmi_threshold=0.4):
     # assigns each superpixel to a melanoma color class if the color distance is below the threshold of 0.04 that Kasmi proposes in his paper.
-    hsv_array = np.array(hsv_means)  # shape: (n_segments, 3)
-    ref_array = np.array(list(melanoma_hsv_colors.values()))  # shape: (6, 3)
+    hsv_array = np.array(hsv_means) 
+    ref_array = np.array(list(melanoma_hsv_colors.values()))
+    color_labels = list(melanoma_hsv_colors.keys())
 
     color_counts = np.zeros(len(ref_array))
 
@@ -137,15 +162,16 @@ def match_melanoma_colors_hsv(hsv_means, kasmi_threshold=0.2):
         dh = np.minimum(np.abs(hsv[0] - ref_array[:, 0]), 1 - np.abs(hsv[0] - ref_array[:, 0]))
         ds = np.abs(hsv[1] - ref_array[:, 1])
         dv = np.abs(hsv[2] - ref_array[:, 2])
-        distances = np.sqrt((dh) ** 2 + ds ** 2 + dv ** 2) 
-        #puts more weight on hue difference than saturation and value differences, to reduce the undesirable effect of lighting
+        distances = np.sqrt((dh) ** 2 + ds ** 2 + dv ** 2)
 
         min_idx = np.argmin(distances)
         if distances[min_idx] < kasmi_threshold:
             color_counts[min_idx] += 1
 
     # Normalize by total number of superpixels
-    return color_counts / len(hsv_array)
+    proportions = color_counts / len(hsv_array)
+
+    return {label: prop for label, prop in zip(color_labels, proportions)}
 
 
 def get_color_vector(image, mask, downsizing_factor = 0.4, n_segments = 50, compactness = 0.1, kasmi_threshold=0.4):
@@ -154,12 +180,23 @@ def get_color_vector(image, mask, downsizing_factor = 0.4, n_segments = 50, comp
 # downsize first!! improves running time significantly
 
     if mask is None or np.all(mask == 0) or np.all(mask == 1):
-        return np.full(6, np.nan)
+        return {
+            'mean_H': np.nan, 'std_H': np.nan,
+            'mean_S': np.nan, 'std_S': np.nan,
+            'mean_V': np.nan, 'std_V': np.nan,
+            'White': np.nan, 'Black': np.nan, 'Red': np.nan,
+            'Light-brown': np.nan, 'Dark-brown': np.nan, 'Blue-gray': np.nan
+        }
 
     image, mask = downsizing(image, mask, downsizing_factor)
 
     slic_segments = slic_segmentation(image, mask, n_segments, compactness)
 
-    rgb_means = get_hsv_means(image, slic_segments)
+    hsv_means = get_hsv_means(image, slic_segments)
 
-    return match_melanoma_colors_hsv(rgb_means, kasmi_threshold)
+    #get the feature vector values separately
+    hsv_stats = avg_std_hsv(hsv_means)
+    melanoma_props = match_melanoma_colors_hsv(hsv_means, kasmi_threshold)
+
+    # Merge and return
+    return {**hsv_stats, **melanoma_props}
