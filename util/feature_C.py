@@ -212,7 +212,7 @@ def get_color_vector(image, mask, downsizing_factor = 0.4, n_segments = 50, comp
 
     result = {**hsv_stats, **melanoma_props}
     result['color_entropy'] = color_entropy(hsv_img, mask)
-    result['dominant_colors'] = count_dominant_colors(hsv_img, mask)
+    # result['dominant_colors'] = count_dominant_colors(hsv_img, mask)
 
     # Merge and return
     return result
