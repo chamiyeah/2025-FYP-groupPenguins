@@ -1,3 +1,5 @@
+import os
+os.environ["OMP_NUM_THREADS"] = "2"
 import cv2
 import numpy as np
 from math import nan
@@ -5,6 +7,7 @@ from skimage.segmentation import slic
 from skimage.color import rgb2hsv
 from scipy.stats import circmean, circstd, entropy
 from sklearn.cluster import KMeans
+
 
 # colors from KASMI2015CLASSIFICATION: https://ietresearch.onlinelibrary.wiley.com/doi/epdf/10.1049/iet-ipr.2015.0385
 melanoma_color_labels = ['White', 'Black', 'Red', 'Light-brown', 'Dark-brown', 'Blue-gray']
@@ -180,7 +183,7 @@ def color_entropy(image, mask):
 
 def count_dominant_colors(image, mask, n_clusters=5):
     pixels = image[mask > 0].reshape(-1, 3)
-    kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(pixels)
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0, n_init='auto').fit(pixels)
     return len(np.unique(kmeans.labels_))
 
 
@@ -212,7 +215,7 @@ def get_color_vector(image, mask, downsizing_factor = 0.4, n_segments = 50, comp
 
     result = {**hsv_stats, **melanoma_props}
     result['color_entropy'] = color_entropy(hsv_img, mask)
-    # result['dominant_colors'] = count_dominant_colors(hsv_img, mask)
+    result['dominant_colors'] = count_dominant_colors(hsv_img, mask)
 
     # Merge and return
     return result
