@@ -3,15 +3,15 @@ os.environ["OMP_NUM_THREADS"] = "1"
 import cv2
 import numpy as np
 import pandas as pd
-from feature_A import mean_asymmetry
-from feature_B import B_compactness
-from feature_C import get_color_vector
-from image_preprocessing import enhance_color_hsv_clahe
+from util.feature_A import mean_asymmetry
+from util.feature_B import B_compactness
+from util.feature_C import get_color_vector
+from util.image_preprocessing import enhance_color_hsv_clahe
 
-image_dir = '../data/skin_images/original/'
-mask_dir = '../data/lesion_masks/'
-metadata_path = '../dataset.csv'
-process_images = "../correct_mask_list.csv"
+image_dir = 'data/skin_images/original/'
+mask_dir = 'data/lesion_masks/'
+metadata_path = 'dataset.csv'
+process_images = "correct_mask_list.csv"
 
 metadata = pd.read_csv(metadata_path)
 good_pics = pd.read_csv(process_images).rename(columns={"Filename": "img_id"})
@@ -98,7 +98,7 @@ def feature_extraction(metadata, image_dir, mask_dir, good_pics, filter=True):
 
     # Save final feature set
     features_df = pd.DataFrame(rows)
-    features_df.to_csv('../result/feature_dataset.csv', index=False)
+    features_df.to_csv('result/feature_dataset.csv', index=False)
     return features_df
 
 feature_extraction(metadata, image_dir, mask_dir, good_pics, filter=True)
