@@ -6,6 +6,7 @@ from sklearn.metrics import (
 
 )
 import matplotlib.pyplot as plt
+import seaborn as sns
 
 '''
 Objects for classifier.py
@@ -56,13 +57,15 @@ def plot_confusion_matrix(y_true, y_pred, title="Confusion Matrix", save_path=No
 
 #plots for cross validation results
 def plot_cross_validation_results(summary_df, save_path=None):
-    plt.figure(figsize=(10, 6))
+    """Plot cross-validation results"""
+    #plt.figure(figsize=(10, 6))
     plt.errorbar(summary_df['max_depth'], summary_df['mean_auc'], 
                 yerr=summary_df['std_auc'], fmt='-o')
     plt.xlabel("Tree Depth")
     plt.ylabel("Mean AUC (±1 std)")
-    plt.title("Decision Tree Cross-Validation for Depth Determination")
+    plt.title("Decision Tree, Cross-Validation for depth determination")
     plt.grid(True)
+    plt.tight_layout()
     if save_path:
         plt.savefig(save_path, dpi=300)
     plt.show()
