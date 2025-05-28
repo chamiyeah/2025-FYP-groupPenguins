@@ -5,6 +5,7 @@ import os
 from feature_A import mean_asymmetry
 from feature_B import B_compactness
 from feature_C import get_color_vector
+from image_preprocessing import enhance_color_hsv_clahe
 
 
 # Configuration
@@ -55,6 +56,7 @@ for _, row in filtered.iterrows():
             print(f"img None {img_id}")
             continue
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+        img = enhance_color_hsv_clahe(img)
 
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         if mask is None:
@@ -96,4 +98,4 @@ for _, row in filtered.iterrows():
 features_df = pd.DataFrame(rows)
 
 # Store result
-features_df.to_csv('feature_dataset.csv', index=False)
+features_df.to_csv('enhanced_feature_dataset.csv', index=False)
