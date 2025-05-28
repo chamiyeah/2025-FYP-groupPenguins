@@ -179,5 +179,4 @@ result/masked_out_images/
 .qodo
 result/
 app.py
-main_baseline_knn_fixed.py 17-47-23-915.py
 .DS_Store
