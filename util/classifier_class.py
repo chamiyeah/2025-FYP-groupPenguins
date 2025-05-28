@@ -25,7 +25,7 @@ class DecisionTreeModel:
         self.data, self.X, self.y, self.groups = load_and_preprocess_data(data_path)
         unique_patients = self.data['patient_id'].unique()
         
-        #slit by patient ID to avoid data leakage
+        #split by patient ID to avoid data leakage
         train_ids, test_ids = train_test_split(
             unique_patients, test_size=0.2, random_state=self.random_state
         )

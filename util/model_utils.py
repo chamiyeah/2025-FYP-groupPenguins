@@ -11,7 +11,7 @@ import matplotlib.pyplot as plt
 Objects for classifier.py
 '''
 
-#data oading and processing
+#data loading and processing
 def load_and_preprocess_data(file_path):
     data = pd.read_csv(file_path)
     data.dropna(inplace=True)
@@ -23,7 +23,7 @@ def load_and_preprocess_data(file_path):
     
     return data, X, y, groups
 
-#performence metrics calculator.
+#performence metrics calculator
 def calculate_metrics(y_true, y_pred, y_prob=None):
     metrics = {
         'accuracy': accuracy_score(y_true, y_pred),

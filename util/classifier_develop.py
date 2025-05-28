@@ -29,7 +29,7 @@ data = pd.read_csv('../result/enhanced_feature_dataset.csv')
 data.dropna(inplace=True) #drop rows with Nan in features dataframe
 data['cancer'] = data['cancer'].astype(int) #convert bool to binary
 
-X = data[['border', 'asymmetry', 'mean_H', 'std_H', 'mean_S', 'std_S', 'mean_V', 'std_V']]#features - baseline
+X = data[['border', 'asymmetry', 'mean_H', 'std_H', 'mean_S', 'std_S', 'mean_V', 'std_V', 'color_entropy']]#features - baseline
 y = data['cancer']#labels
 
 #grouping 
@@ -47,6 +47,9 @@ train_idx = data['patient_id'].isin(train_ids)#selecting patients in that are in
 
 X_train, y_train = X[train_idx], y[train_idx] #getting training set patients features and labels
 groups_train = groups[train_idx] #saving patients ids for GroupKFold?
+
+#checking balance
+print(f'Cancer cases: {round(y_train.sum()/len(X_train)*100)}% of the training data set')
 
 max_depth_values = range(1, 21) 
 cv = GroupKFold(n_splits=5)
