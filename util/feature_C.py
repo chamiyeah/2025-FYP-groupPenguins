@@ -3,9 +3,8 @@ import numpy as np
 from math import nan
 from skimage.segmentation import slic
 from skimage.color import rgb2hsv
-from scipy.stats import circmean, circstd
-from skimage.color import rgb2hsv
-import numpy as np
+from scipy.stats import circmean, circstd, entropy
+from sklearn.cluster import KMeans
 
 # colors from KASMI2015CLASSIFICATION: https://ietresearch.onlinelibrary.wiley.com/doi/epdf/10.1049/iet-ipr.2015.0385
 melanoma_color_labels = ['White', 'Black', 'Red', 'Light-brown', 'Dark-brown', 'Blue-gray']
@@ -99,8 +98,7 @@ def slic_segmentation(image, mask, n_segments = 50, compactness = 0.1):
 #     return color_counts / len(rgb_array)
 
 
-def get_hsv_means(image, slic_segments):
-    hsv_image = rgb2hsv(image)
+def get_hsv_means(hsv_image, slic_segments):
     flat_segments = slic_segments.flatten()
     flat_hsv = hsv_image.reshape(-1, 3)
 
@@ -174,6 +172,18 @@ def match_melanoma_colors_hsv(hsv_means, kasmi_threshold=0.4):
     return {label: prop for label, prop in zip(color_labels, proportions)}
 
 
+def color_entropy(image, mask):
+    h = image[:, :, 0][mask > 0]  # only pixels inside the mask
+    hist, _ = np.histogram(h, bins=20, range=(0, 1), density=True)
+    return entropy(hist + 1e-6)  # small constant to avoid log(0)
+
+
+def count_dominant_colors(image, mask, n_clusters=5):
+    pixels = image[mask > 0].reshape(-1, 3)
+    kmeans = KMeans(n_clusters=n_clusters, random_state=0).fit(pixels)
+    return len(np.unique(kmeans.labels_))
+
+
 def get_color_vector(image, mask, downsizing_factor = 0.4, n_segments = 50, compactness = 0.1, kasmi_threshold=0.4):
 # main function that takes an RGB!! image and its mask as an input and provides a melanoma color proportion vector
 # IMPORTANT THAT THE BINARY MASK IS 2D    
@@ -190,13 +200,19 @@ def get_color_vector(image, mask, downsizing_factor = 0.4, n_segments = 50, comp
 
     image, mask = downsizing(image, mask, downsizing_factor)
 
-    slic_segments = slic_segmentation(image, mask, n_segments, compactness)
+    slic_segments = slic_segmentation(image, mask, n_segments, compactness) #running slic segmentation on RGB not on hsv
 
-    hsv_means = get_hsv_means(image, slic_segments)
+    hsv_img = rgb2hsv(image) #getting hsv img to run future functions
+
+    hsv_means = get_hsv_means(hsv_img, slic_segments)
 
     #get the feature vector values separately
     hsv_stats = avg_std_hsv(hsv_means)
     melanoma_props = match_melanoma_colors_hsv(hsv_means, kasmi_threshold)
 
+    result = {**hsv_stats, **melanoma_props}
+    result['color_entropy'] = color_entropy(hsv_img, mask)
+    result['dominant_colors'] = count_dominant_colors(hsv_img, mask)
+
     # Merge and return
-    return {**hsv_stats, **melanoma_props}
+    return result

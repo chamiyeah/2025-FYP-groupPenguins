@@ -9,4 +9,5 @@ def enhance_color_hsv_clahe(image, clip_limit=2.0, tile_grid_size=(8, 8)):
 
     hsv_enhanced = cv2.merge([h, s, v_enhanced])
     enhanced_image = cv2.cvtColor(hsv_enhanced, cv2.COLOR_HSV2RGB)
+
     return enhanced_image
