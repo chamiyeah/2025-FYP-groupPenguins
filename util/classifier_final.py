@@ -183,7 +183,7 @@ def prediction_evaluation(data, features, save = True):
             Save the prediction results to a CSV file.
         features : list of str
             List of features for training 
-            
+
     Returns:
     -------
         None
@@ -204,7 +204,7 @@ def prediction_evaluation(data, features, save = True):
 
     X, y, groups, _, test_mask = load_and_splitbypatient(data, features)
 
-    pipe = model_training(data)
+    pipe = model_training(data, features)
 
     #test set labels and features, 20% patients
     X_test, y_test = X[test_mask], y[test_mask]
