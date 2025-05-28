@@ -52,17 +52,20 @@ for _, row in filtered.iterrows():
     try:
         img = cv2.imread(img_path)
         if img is None:
+            print(f"img None {img_id}")
             continue
         img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
 
         mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
         if mask is None:
+            print(f"img None {img_id}")
             continue
 
         # THIS MIGHT BE REMOVED LATER ON!!!  (we ignore lesions that are multiple and small because the asymmetry border and color are not gonna be trustworthy)
-        contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
-        if len(contours) > 1:
-            continue
+        # contours, _ = cv2.findContours(mask, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
+        # if len(contours) > 1:
+        #     print(f"several lesions, {img_id}")
+        #     continue
 
         # Extract features
         asymmetry = mean_asymmetry(mask)
