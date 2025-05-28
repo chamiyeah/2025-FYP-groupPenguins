@@ -1,5 +1,5 @@
 import os
-os.environ["OMP_NUM_THREADS"] = "2"
+os.environ["OMP_NUM_THREADS"] = "1"
 import cv2
 import numpy as np
 import pandas as pd
@@ -100,4 +100,4 @@ for _, row in filtered.iterrows():
 features_df = pd.DataFrame(rows)
 
 # Store result
-features_df.to_csv('enhanced_feature_dataset.csv', index=False)
+features_df.to_csv('../result/enhanced_feature_dataset.csv', index=False)

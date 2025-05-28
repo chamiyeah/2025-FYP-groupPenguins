@@ -1,5 +1,5 @@
 import os
-os.environ["OMP_NUM_THREADS"] = "2"
+os.environ["OMP_NUM_THREADS"] = "1"
 import cv2
 import numpy as np
 from math import nan
