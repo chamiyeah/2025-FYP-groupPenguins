@@ -11,7 +11,7 @@ from feature_C import get_color_vector
 image_dir = '../data/imgs/'
 mask_dir = '../data/lesion_masks/'
 metadata_path = '../dataset.csv'
-process_images = "../good_images_list.csv"
+process_images = "../correct_mask_list.csv"
 
 
 # Load both CSVs
