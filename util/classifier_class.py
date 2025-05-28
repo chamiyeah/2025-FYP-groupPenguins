@@ -49,7 +49,7 @@ class DecisionTreeModel:
         for depth in max_depth_range:
             clf = make_pipeline(
                 StandardScaler(),
-                DecisionTreeClassifier(max_depth=depth, random_state=self.random_state)
+                DecisionTreeClassifier(max_depth=depth, random_state=42)
             )
             auc_scores = cross_val_score(
                 clf, self.X_train, self.y_train, 
