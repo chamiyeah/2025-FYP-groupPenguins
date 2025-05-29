@@ -5,23 +5,21 @@ import joblib
 import matplotlib.pyplot as plt
 import cv2
 from tqdm import tqdm
-from util.features_extract_extended import feature_extraction_extended
+from util.feature_extraction_ex2 import feature_extraction_extended
 from sklearn.metrics import (
     accuracy_score, recall_score, roc_auc_score,
     precision_score, f1_score, ConfusionMatrixDisplay
 )
 
-# ANSI color codes for terminal output
+#color codes for terminal output and debugging
 YELLOW = '\033[93m'
 PURPLE = '\033[95m'
 GREEN = '\033[92m'
 RED = '\033[91m'
 RESET = '\033[0m'
 
-#Read before running: this file contains 3 scripts, chose one accordingly
-
 ##########################################################################################################################################
-#sCRIPT 01
+#Script 01
 #use when csv of extracted features is not provided and we want to extract features, train the model and evaluate its performance
 def main_extended(image_dir, mask_dir, metadata_path, process_images, result_dir, model_path):
     """
@@ -85,7 +83,7 @@ def main_extended(image_dir, mask_dir, metadata_path, process_images, result_dir
     print(f'Results saved to result directory')
 
 # ################################################################################################################
-#sCRIOT 02 
+#Script 02 
 #when csv is provided, so we do just training and saving trained model + returning evaluation of the trained model
 
 def main_extended_with_data(feature_path, result_dir, model_path=None):
@@ -176,7 +174,7 @@ def evaluate_unseen_extended(image_dir, mask_dir, metadata_path, model_path, res
     X_test = extracted[features]
     y_test = extracted['cancer']
 
-    #comback if there is time! 
+    #come back if there is time! -> did not have time to implement this function properly
     #could not reuse prediction_evaluation function since it lacks logic of inputs, i made it too specific for training
     y_pred = model.predict(X_test)
     y_prob = model.predict_proba(X_test)[:, 1]
@@ -215,12 +213,12 @@ def evaluate_unseen_extended(image_dir, mask_dir, metadata_path, model_path, res
     print(f"Saved prediction results to {result_dir / 'results_unseen_test_extended.csv'}")
 
 
-# --- Only keep the script selection block below as the main entry point ---
+#script selection and execution
 if __name__ == "__main__":
     print("Select mode to run:")
     print("1: Extract features, train and evaluate (Script 1)")
     print("2: Train and evaluate from existing features CSV (Script 2)")
-    print("3: Evaluate on unseen data (Script 3)")
+    print("3: Extract features and evaluate trained model on unseen data (Script 3)")
     mode = input("Enter 1, 2, or 3: ").strip()
 
     base_dir = Path(__file__).parent.resolve()

@@ -11,7 +11,6 @@ from sklearn.metrics import (
     precision_score, f1_score, ConfusionMatrixDisplay
 )
 
-#file contains 3 scripts, chose one accordingly
 #########################################################################################################################
 #Script 1
 # when csv of extracted features is not provided and we want to train the model and evaluate its performance
