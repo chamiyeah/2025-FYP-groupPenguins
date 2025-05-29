@@ -3,12 +3,12 @@ import cv2
 import numpy as np
 import pandas as pd
 from pathlib import Path
-from inpaint_final import hair_coverage, removeHair
-from feature_A import mean_asymmetry
-from feature_B import B_compactness
-from feature_C import get_color_vector
-from image_util import enhance_color_hsv_clahe
-from feature_T import mean_gradient
+from util.inpaint_final import hair_coverage, removeHair
+from util.feature_A import mean_asymmetry
+from util.feature_B import B_compactness
+from util.feature_C import get_color_vector
+from util.image_util import enhance_color_hsv_clahe
+from util.feature_T import mean_gradient
 from tqdm import tqdm
 
 # ANSI color codes for terminal output
