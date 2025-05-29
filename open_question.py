@@ -11,7 +11,7 @@ from sklearn.metrics import (
 )
 
 
-def main_baseline_with_data(feature_path, result_dir, model_path=None):
+def main_baseline_extra_feature(feature_path, result_dir, model_path=None):
 
     result_dir = Path(result_dir)
     feature_path = Path(feature_path)
@@ -34,7 +34,7 @@ def main_baseline_with_data(feature_path, result_dir, model_path=None):
         joblib.dump(pipe, model_path)
         print(f"Trained model saved to: {model_path}")
 
-    prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_extended.png', name2='result_extended.csv')
+    prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_open.png', name2='result_open.csv')
 
     print(f"Results saved to: {result_dir}")
 
@@ -42,8 +42,8 @@ def main_baseline_with_data(feature_path, result_dir, model_path=None):
 if __name__ == "__main__":
     base_dir = Path(__file__).parent.resolve()
     result_dir = base_dir / "result"
-    feature_path = result_dir / "feature_dataset.csv" 
+    feature_path = result_dir / "feature_dataset.csv" #or feature dataset_extended.csv
     model_path = result_dir / "trained_DT_extended.joblib"  
 
-    main_baseline_with_data(feature_path, result_dir, model_path=model_path)
+    main_baseline_extra_feature(feature_path, result_dir, model_path=model_path)
 

@@ -105,7 +105,7 @@ def main_extended_with_data(feature_path, result_dir, model_path=None):
 if __name__ == "__main__":
     base_dir = Path(__file__).parent.resolve()
     result_dir = base_dir / "result"
-    feature_path = result_dir / "feature_dataset.csv" 
+    feature_path = result_dir / "feature_dataset_extended.csv" 
     model_path = result_dir / "trained_DT_extended.joblib"  
 
     main_extended_with_data(feature_path, result_dir, model_path=model_path)

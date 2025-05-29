@@ -8,6 +8,7 @@ from util.feature_A import mean_asymmetry
 from util.feature_B import B_compactness
 from util.feature_C import get_color_vector
 from util.image_util import enhance_color_hsv_clahe
+from util.feature_T import mean_gradient
 
 def feature_extraction_extended(metadata_path, image_dir, mask_dir, good_pics_path, result_dir, filter=True):
     """
@@ -72,6 +73,7 @@ def feature_extraction_extended(metadata_path, image_dir, mask_dir, good_pics_pa
             asymmetry = mean_asymmetry(mask)
             border = B_compactness(mask)
             color_vector = get_color_vector(img_clean, mask)
+            texture = mean_gradient(img, mask)
 
             result = {
                 'patient_id': patient_id,
@@ -80,6 +82,7 @@ def feature_extraction_extended(metadata_path, image_dir, mask_dir, good_pics_pa
                 'hair_coverage': coverage,
                 'border': border,
                 'asymmetry': asymmetry,
+                'texture': texture,
                 **color_vector
             }
 
@@ -90,7 +93,7 @@ def feature_extraction_extended(metadata_path, image_dir, mask_dir, good_pics_pa
             continue
 
     features_df = pd.DataFrame(rows)
-    features_df.to_csv(Path(result_dir) / "feature_dataset.csv", index=False)
+    features_df.to_csv(Path(result_dir) / "feature_dataset_extended.csv", index=False)
     return features_df
 
 

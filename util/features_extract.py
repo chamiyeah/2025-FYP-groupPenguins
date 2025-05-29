@@ -7,6 +7,7 @@ from util.feature_A import mean_asymmetry
 from util.feature_B import B_compactness
 from util.feature_C import get_color_vector
 from util.image_util import enhance_color_hsv_clahe
+from util.feature_T import mean_gradient
 
 def feature_extraction(metadata, image_dir, mask_dir, good_pics, result_dir, filter=True):
     """
@@ -68,7 +69,7 @@ def feature_extraction(metadata, image_dir, mask_dir, good_pics, result_dir, fil
             asymmetry = mean_asymmetry(mask)
             border = B_compactness(mask)
             color_vector = get_color_vector(img, mask)  # dict with 6 color features
-            #space for open question!!!!!!!!!!!!!!!!
+            texture = mean_gradient(img, mask)
 
             result = {
                 'patient_id': patient_id,
@@ -76,6 +77,7 @@ def feature_extraction(metadata, image_dir, mask_dir, good_pics, result_dir, fil
                 'cancer': cancer,
                 'border': border,
                 'asymmetry': asymmetry,
+                'texture': texture,
                 **color_vector
             }
 
