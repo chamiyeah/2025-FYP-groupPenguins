@@ -88,7 +88,7 @@ def removeHair(img_org, img_gray, kernel_size=15, threshold=10, radius=3):
     img_gray = np.array(img_gray, dtype=np.uint8)
     enhanced_hair_mask = enhance_hair_mask(img_gray) #enhance hair recognition
 
-    kernel_size = 25 if coverage > 0.025 else 15 #adjust kernel size to avoid blurrying, kerenel size 15 is tested to be optimal for thin hair
+    kernel_size = 25 if coverage > 0.035 else 15 #adjust kernel size to avoid blurrying, kerenel size 15 is tested to be optimal for thin hair
     kernel = cv2.getStructuringElement(cv2.MORPH_CROSS, (kernel_size, kernel_size))
 
     enhanced_hair_mask = np.array(enhanced_hair_mask, dtype=np.uint8)
