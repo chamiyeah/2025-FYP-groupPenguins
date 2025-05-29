@@ -20,6 +20,8 @@ def main():
             'color_entropy', 'melanoma_colors'
         ]
         
+        #'color_entropy', 'melanoma_colors'
+
         # Perform cross-validation
         print("\nPerforming cross-validation...")
         max_depth = 21  # Try depths from 1 to 20

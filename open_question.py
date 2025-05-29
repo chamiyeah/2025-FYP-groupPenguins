@@ -4,7 +4,6 @@ from pathlib import Path
 import joblib
 import matplotlib.pyplot as plt
 import cv2
-from util.features_extract_extended import feature_extraction_extended
 from sklearn.metrics import (
     accuracy_score, recall_score, roc_auc_score,
     precision_score, f1_score, ConfusionMatrixDisplay
@@ -42,7 +41,7 @@ def main_baseline_extra_feature(feature_path, result_dir, model_path=None):
 if __name__ == "__main__":
     base_dir = Path(__file__).parent.resolve()
     result_dir = base_dir / "result"
-    feature_path = result_dir / "feature_dataset.csv" #or feature dataset_extended.csv
+    feature_path = result_dir / "feature_dataset.csv" #or feature_dataset_extended.csv
     model_path = result_dir / "trained_DT_extended.joblib"  
 
     main_baseline_extra_feature(feature_path, result_dir, model_path=model_path)

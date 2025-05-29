@@ -4,7 +4,7 @@ from pathlib import Path
 import joblib
 import matplotlib.pyplot as plt
 import cv2
-from util.features_extract_extended import feature_extraction_extended
+#from util.features_extract_extended import feature_extraction_extended
 from sklearn.metrics import (
     accuracy_score, recall_score, roc_auc_score,
     precision_score, f1_score, ConfusionMatrixDisplay
@@ -13,109 +13,110 @@ from sklearn.metrics import (
 #Read before running: this file contains 3 scripts, chose one accordingly
 
 ##########################################################################################################################################
-#use when csv of extracted features is not provided and we want to extract features, train the model and evaluate its performance
-def main_extended(image_dir, mask_dir, metadata_path, process_images, result_dir):
-    """
-    Works the same as a baseline model just with corrected feature extraction function that extracts hair feature
-    before hair removal is applied and later extracts all the baseline features.
+# #this script is not working because of the path error
+# #use when csv of extracted features is not provided and we want to extract features, train the model and evaluate its performance
+# def main_extended(image_dir, mask_dir, metadata_path, process_images, result_dir):
+#     """
+#     Works the same as a baseline model just with corrected feature extraction function that extracts hair feature
+#     before hair removal is applied and later extracts all the baseline features.
 
-    Input:
-    ----------
-        image_dir : str or pathlib.Path
-            Directory containing the skin lesion images
-        mask_dir : str or pathlib.Path
-            Directory containing lesion masks
-        metadata_path : str or pathlib.Path
-            Path to the CSV file containing diagnostic labels
-        process_images : str or pathlib.Path
-            Path to the CSV file listing the image IDs considered valid for processing (one lesion per image and visually distinct lesions)
-        result_dir : str or pathlib.Path
-            Path to directory where all the results are saved in
+#     Input:
+#     ----------
+#         image_dir : str or pathlib.Path
+#             Directory containing the skin lesion images
+#         mask_dir : str or pathlib.Path
+#             Directory containing lesion masks
+#         metadata_path : str or pathlib.Path
+#             Path to the CSV file containing diagnostic labels
+#         process_images : str or pathlib.Path
+#             Path to the CSV file listing the image IDs considered valid for processing (one lesion per image and visually distinct lesions)
+#         result_dir : str or pathlib.Path
+#             Path to directory where all the results are saved in
 
-    Returns:
-    -------
-        None
-            Prints metrics of the extended model on testing data and saves prediction csv to results directory + confusion matrix image
-    """
-    # Convert all paths to Path objects
-    image_dir = Path(image_dir)
-    mask_dir = Path(mask_dir)
-    metadata_path = Path(metadata_path)
-    process_images = Path(process_images)
-    result_dir = Path(result_dir)
+#     Returns:
+#     -------
+#         None
+#             Prints metrics of the extended model on testing data and saves prediction csv to results directory + confusion matrix image
+#     """
+#     # Convert all paths to Path objects
+#     image_dir = Path(image_dir)
+#     mask_dir = Path(mask_dir)
+#     metadata_path = Path(metadata_path)
+#     process_images = Path(process_images)
+#     result_dir = Path(result_dir)
 
-    try:
-        metadata = pd.read_csv(str(metadata_path))
-        good_pics = pd.read_csv(str(process_images)).rename(columns={"Filename": "img_id"})
-    except FileNotFoundError as e:
-        print(f"Error loading data files: {str(e)}")
-        exit(1)
+#     try:
+#         metadata = pd.read_csv(str(metadata_path))
+#         good_pics = pd.read_csv(str(process_images)).rename(columns={"Filename": "img_id"})
+#     except FileNotFoundError as e:
+#         print(f"Error loading data files: {str(e)}")
+#         exit(1)
 
-    print('Starting feature extraction:')
-    #Features extraction
-    data = feature_extraction_extended(metadata, str(image_dir), str(mask_dir), good_pics, str(result_dir), filter=True)
-    print(f"Extracted features csv saved to {result_dir / 'feature_dataset.csv'}")
+#     print('Starting feature extraction:')
+#     #Features extraction
+#     data = feature_extraction_extended(metadata, str(image_dir), str(mask_dir), good_pics, str(result_dir), filter=True)
+#     print(f"Extracted features csv saved to {result_dir / 'feature_dataset.csv'}")
 
-    #Selecting features for extended model (added hair coverage feature and ABC features are now evealuated after hair removal is done)
-    features = ['hair_coverage','border', 'asymmetry', 'mean_H', 'std_H', 'mean_S', 'std_S', 'mean_V', 'std_V', 'color_entropy', 'melanoma_colors']
+#     #Selecting features for extended model (added hair coverage feature and ABC features are now evealuated after hair removal is done)
+#     features = ['hair_coverage','border', 'asymmetry', 'mean_H', 'std_H', 'mean_S', 'std_S', 'mean_V', 'std_V', 'color_entropy', 'melanoma_colors'] #, 'color_entropy', 'melanoma_colors'
 
-    #Training decsion tree model using selected features
-    pipe = model_training(data, features)
+#     #Training decsion tree model using selected features
+#     pipe = model_training(data, features)
 
-    #Predicting labels and evaluating on test set our trained model pipe
-    prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_extended.png', name2='result_extended.csv')
+#     #Predicting labels and evaluating on test set our trained model pipe
+#     prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_extended.png', name2='result_extended.csv')
 
-    #Result overview directory
-    print(f'Results saved to result directory')
+#     #Result overview directory
+#     print(f'Results saved to result directory')
 
-if __name__ == "__main__":
-    base_dir = Path(__file__).parent.resolve()
-    image_dir = base_dir / 'data' / 'skin_images' / 'original'
-    mask_dir = base_dir / 'data' / 'lesion_masks'
-    metadata_path = base_dir / 'dataset.csv'
-    process_images = base_dir / 'correct_mask_list.csv'
-    result_dir = base_dir / "result"
+# if __name__ == "__main__":
+#     base_dir = Path(__file__).parent.resolve()
+#     image_dir = base_dir / 'data' / 'skin_images' / 'original'
+#     mask_dir = base_dir / 'data' / 'lesion_masks'
+#     metadata_path = base_dir / 'dataset.csv'
+#     process_images = base_dir / 'correct_mask_list.csv'
+#     result_dir = base_dir / "result"
 
-    main_extended(image_dir, mask_dir, metadata_path, process_images, result_dir)
+#     main_extended(image_dir, mask_dir, metadata_path, process_images, result_dir)
 
 ################################################################################################################
 # #when csv is provided, so we do just training and saving trained model + returning evaluation of the trained model
 
-# def main_extended_with_data(feature_path, result_dir, model_path=None):
+def main_extended_with_data(feature_path, result_dir, model_path=None):
 
-#     result_dir = Path(result_dir)
-#     feature_path = Path(feature_path)
+    result_dir = Path(result_dir)
+    feature_path = Path(feature_path)
 
-#     try:
-#         data = pd.read_csv(feature_path)
-#     except FileNotFoundError as e:
-#         print(f"Error loading extracted features CSV: {str(e)}")
-#         return
+    try:
+        data = pd.read_csv(feature_path)
+    except FileNotFoundError as e:
+        print(f"Error loading extracted features CSV: {str(e)}")
+        return
 
-#     print(f"Using extracted features from: {feature_path.name}")
+    print(f"Using extracted features from: {feature_path.name}")
 
-#     features = ['hair_coverage','border', 'asymmetry', 'mean_H', 'std_H', 'mean_S', 'std_S', 'mean_V', 'std_V', 'color_entropy', 'melanoma_colors']
+    features = ['hair_coverage', 'border', 'asymmetry', 'mean_H', 'std_H', 'mean_S', 'std_S', 'mean_V', 'std_V', 'color_entropy', 'melanoma_colors']
 
-#     pipe = model_training(data, features)
+    pipe = model_training(data, features)
 
-#     #save model if model_path is specified
-#     if model_path:
-#         model_path = Path(model_path)
-#         joblib.dump(pipe, model_path)
-#         print(f"Trained model saved to: {model_path}")
+    #save model if model_path is specified
+    if model_path:
+        model_path = Path(model_path)
+        joblib.dump(pipe, model_path)
+        print(f"Trained model saved to: {model_path}")
 
-#     prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_extended.png', name2='result_extended.csv')
+    prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_extended.png', name2='result_extended.csv')
 
-#     print(f"Results saved to: {result_dir}")
+    print(f"Results saved to: {result_dir}")
 
 
-# if __name__ == "__main__":
-#     base_dir = Path(__file__).parent.resolve()
-#     result_dir = base_dir / "result"
-#     feature_path = result_dir / "feature_dataset_extended.csv" 
-#     model_path = result_dir / "trained_DT_extended.joblib"  
+if __name__ == "__main__":
+    base_dir = Path(__file__).parent.resolve()
+    result_dir = base_dir / "result"
+    feature_path = result_dir / "feature_dataset_extended.csv" 
+    model_path = result_dir / "trained_DT_extended.joblib"  
 
-#     main_extended_with_data(feature_path, result_dir, model_path=model_path)
+    main_extended_with_data(feature_path, result_dir, model_path=model_path)
 
 
 # #########################################################################################################################
