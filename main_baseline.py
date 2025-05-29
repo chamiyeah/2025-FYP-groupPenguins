@@ -114,7 +114,7 @@ def main_baseline_with_data(feature_path, result_dir, model_path=None):
 
     print(f"Using extracted features from: {feature_path.name}")
 
-    features = ['border', 'asymmetry', 'texture', 'mean_H', 'std_H', 'mean_S', 'std_S', 'mean_V', 'std_V', 'color_entropy', 'melanoma_colors'] 
+    features = ['border', 'asymmetry', 'mean_H', 'std_H', 'mean_S', 'std_S', 'mean_V', 'std_V', 'color_entropy', 'melanoma_colors'] 
 
     pipe = model_training(data, features)
 
