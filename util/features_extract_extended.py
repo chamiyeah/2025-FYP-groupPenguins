@@ -11,9 +11,8 @@ from util.image_util import enhance_color_hsv_clahe
 
 def feature_extraction_extended(metadata_path, image_dir, mask_dir, good_pics_path, result_dir, filter=True):
     """
-    Extracts features from lesion images and corresponding masks. 
-    If filter=True, uses a list of valid image IDs (good_pics) to filter input.
-    Includes hair detection (within lesion only) and removal before computing lesion features.
+    Extracts features from lesion images and corresponding masks. If filter=True, uses a list of valid image IDs (good_pics) to filter input.
+    Includes hair detection (within lesion only) and hair removal before computing lesion features.
 
     Input:
         metadata_path (str or Path): Path to metadata CSV file
@@ -27,7 +26,6 @@ def feature_extraction_extended(metadata_path, image_dir, mask_dir, good_pics_pa
         pd.DataFrame: DataFrame with extracted features (also saved to CSV)
     """
 
-    # Read metadata and good_pics CSV files
     metadata = pd.read_csv(metadata_path)
     good_pics = pd.read_csv(good_pics_path)
 
@@ -42,6 +40,7 @@ def feature_extraction_extended(metadata_path, image_dir, mask_dir, good_pics_pa
     rows = []
     counter = 0
 
+    #data loader and feature extraction
     for _, row in filtered.iterrows():
         counter += 1
         print(counter)
@@ -54,7 +53,7 @@ def feature_extraction_extended(metadata_path, image_dir, mask_dir, good_pics_pa
         mask_filename = img_id.replace('.png', '_mask.png')
         mask_path = os.path.join(mask_dir, mask_filename)
 
-        try:
+        try:#validity check for image and mask existence
             img = cv2.imread(img_path)
             if img is None:
                 print(f"img None {img_id}")

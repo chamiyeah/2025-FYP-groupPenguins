@@ -170,7 +170,7 @@ def model_training(data, features):
 
 ######### PREDICTION AND EVALUTATION #####################################################################################################################
 
-def prediction_evaluation(data, features, pipe, result_dir):
+def prediction_evaluation(data, features, pipe, result_dir, name1, name2):
     """
     Uses trained Decision Tree (actually retrains inside the function) and evaluates it on the test set.
     Outputs evaluation metrics, displays the confusion matrix, and saves the predictions if desired.
@@ -185,6 +185,11 @@ def prediction_evaluation(data, features, pipe, result_dir):
             A trained pipeline consisting of a StandardScaler and a DecisionTreeClassifier
         result_dir : str or pathlib.Path
             Path to directory where all the results are saved in
+        name1: str
+            File name for confusion matrix image
+        name2: str
+            File name for results CSV
+
     Returns:
     -------
         None
@@ -238,7 +243,7 @@ def prediction_evaluation(data, features, pipe, result_dir):
     )
     plt.title("Confusion Matrix of decision tree (depth=4)")
     plt.grid(False)
-    plt.savefig(result_dir / "confusion_matrix.png", dpi=300) 
+    plt.savefig(result_dir / name1, dpi=300) 
     plt.show()
 
     #results
@@ -254,4 +259,4 @@ def prediction_evaluation(data, features, pipe, result_dir):
     print(f'True cancerous images in test set: {len(results_df[results_df['label']==1])}')
     print(f'True non-cancerous images in test set: {len(results_df[results_df['label']==0])}')
     
-    results_df.to_csv(result_dir / "prediction_results.csv", index=False)
+    results_df.to_csv(result_dir / name2, index=False)
