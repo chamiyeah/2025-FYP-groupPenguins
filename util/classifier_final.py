@@ -170,7 +170,7 @@ def model_training(data, features):
 
 ######### PREDICTION AND EVALUTATION #####################################################################################################################
 
-def prediction_evaluation(data, features, save = True):
+def prediction_evaluation(data, features, pipe, result_dir):
     """
     Uses trained Decision Tree (actually retrains inside the function) and evaluates it on the test set.
     Outputs evaluation metrics, displays the confusion matrix, and saves the predictions if desired.
@@ -179,11 +179,12 @@ def prediction_evaluation(data, features, save = True):
     ----------
         data : pandas.DataFrame
             The full dataset with extracted features, labels, and patient/image ids
-        save : bool, optional (default=True)
-            Save the prediction results to a CSV file.
         features : list of str
             List of features for training 
-
+        pipe : sklearn.pipeline.Pipeline
+            A trained pipeline consisting of a StandardScaler and a DecisionTreeClassifier
+        result_dir : str or pathlib.Path
+            Path to directory where all the results are saved in
     Returns:
     -------
         None
@@ -203,8 +204,6 @@ def prediction_evaluation(data, features, save = True):
     """
 
     X, y, groups, _, test_mask = load_and_splitbypatient(data, features)
-
-    pipe = model_training(data, features)
 
     #test set labels and features, 20% patients
     X_test, y_test = X[test_mask], y[test_mask]
@@ -239,7 +238,7 @@ def prediction_evaluation(data, features, save = True):
     )
     plt.title("Confusion Matrix of decision tree (depth=4)")
     plt.grid(False)
-    plt.savefig("../result/confusion_matrix_baseline.png", dpi=300) 
+    plt.savefig(result_dir / "confusion_matrix.png", dpi=300) 
     plt.show()
 
     #results
@@ -251,9 +250,8 @@ def prediction_evaluation(data, features, save = True):
     })
 
     #check for balance, because we excluded Nan features
-    print(f'Total number of images: {len(results_df)}')
-    print(f'True cancerous images: {len(results_df[results_df['label']==1])}')
-    print(f'True non-cancerous images: {len(results_df[results_df['label']==0])}')
+    print(f'Total number of images in test set: {len(results_df)}')
+    print(f'True cancerous images in test set: {len(results_df[results_df['label']==1])}')
+    print(f'True non-cancerous images in test set: {len(results_df[results_df['label']==0])}')
     
-    if save:
-        results_df.to_csv("../result/result_baseline.csv", index=False)
+    results_df.to_csv(result_dir / "prediction_results.csv", index=False)

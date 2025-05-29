@@ -8,33 +8,30 @@ from util.feature_B import B_compactness
 from util.feature_C import get_color_vector
 from util.image_preprocessing import enhance_color_hsv_clahe
 
-image_dir = 'data/skin_images/original/'
-mask_dir = 'data/lesion_masks/'
-metadata_path = 'dataset.csv'
-process_images = "correct_mask_list.csv"
+# image_dir = 'data/skin_images/original/'
+# mask_dir = 'data/lesion_masks/'
+# metadata_path = 'dataset.csv'
+# process_images = "correct_mask_list.csv"
 
-metadata = pd.read_csv(metadata_path)
-good_pics = pd.read_csv(process_images).rename(columns={"Filename": "img_id"})
+# metadata = pd.read_csv(metadata_path)
+# good_pics = pd.read_csv(process_images).rename(columns={"Filename": "img_id"})
 
 
-def feature_extraction(metadata, image_dir, mask_dir, good_pics, filter=True):
+def feature_extraction(metadata, image_dir, mask_dir, good_pics, result_dir, filter=True):
     """
     Extracts features from lesion images and corresponding masks. 
     If filter=True, uses a list of valid image IDs (good_pics) to filter input.
 
-    Parameters:
+    Input:
         metadata (pd.DataFrame): DataFrame containing metadata for all images.
         image_dir (str): Directory path to input images.
         mask_dir (str): Directory path to segmentation masks.
         good_pics (pd.DataFrame): DataFrame with column 'img_id' listing valid image files.
         filter (bool): If True, filters the data using good_pics; otherwise uses all images in metadata.
-
+        result_dir (str or pathlib.Path) : Path to directory where all the results are saved in
     Returns:
         None: Saves extracted features to '../result/feature_dataset.csv'.
     """
-    import os
-    import cv2
-    import pandas as pd
 
     if filter:
         # Merge to retain only good pictures
@@ -98,11 +95,11 @@ def feature_extraction(metadata, image_dir, mask_dir, good_pics, filter=True):
 
     # Save final feature set
     features_df = pd.DataFrame(rows)
-    features_df.to_csv('result/feature_dataset.csv', index=False)
+    features_df.to_csv(result_dir / "feature_dataset.csv", index=False)
     return features_df
 
-feature_extraction(metadata, image_dir, mask_dir, good_pics, filter=True)
-print('yes')
+# feature_extraction(metadata, image_dir, mask_dir, good_pics, filter=True)
+# print('yes')
 
 #########################################################################################
 # # Configuration
