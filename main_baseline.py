@@ -22,7 +22,7 @@ except FileNotFoundError as e:
 data = feature_extraction(metadata, str(image_dir), str(mask_dir), good_pics, filter=True)
 
 # Correct feature list (removed duplicate mean_H)
-features = ['border', 'asymmetry', 'mean_H', 'std_H', 'mean_S', 'std_S', 'mean_V', 'std_V']
+features = ['border', 'asymmetry', 'mean_H', 'std_H', 'mean_S', 'std_S', 'mean_V', 'std_V', 'color_entropy', 'melanoma_colors']
 
 # Run prediction evaluation
 prediction_evaluation(data, features)
