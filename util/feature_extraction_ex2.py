@@ -1,8 +1,12 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.resolve()))
+sys.path.append(str(Path(__file__).parent.parent.resolve()))
+
 import os
 import cv2
 import numpy as np
 import pandas as pd
-from pathlib import Path
 from util.inpaint_final import hair_coverage, removeHair
 from util.feature_A import mean_asymmetry
 from util.feature_B import B_compactness
