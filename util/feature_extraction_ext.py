@@ -1,8 +1,11 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.resolve()))
+sys.path.append(str(Path(__file__).parent.parent.resolve()))
 import os
 import cv2
 import numpy as np
 import pandas as pd
-from pathlib import Path
 from util.inpaint_final import hair_coverage, removeHair
 from util.feature_A import mean_asymmetry
 from util.feature_B import B_compactness
@@ -10,8 +13,9 @@ from util.feature_C import get_color_vector
 from util.image_util import enhance_color_hsv_clahe
 from util.feature_T import mean_gradient
 from tqdm import tqdm
+import concurrent.futures
 
-# ANSI color codes for terminal output
+#color codes for terminal output
 YELLOW = '\033[93m'
 PURPLE = '\033[95m'
 GREEN = '\033[92m'
@@ -53,43 +57,31 @@ def feature_extraction_extended(metadata_path, image_dir, mask_dir, good_pics_pa
     total_images = len(filtered)
     print(f"{GREEN}Found {total_images} images to process{RESET}")
 
-    rows = []
-    counter = 0
-
-    #data loader and feature extraction
-    print(f"{PURPLE}Starting feature extraction for each image...{RESET}")
-    for _, row in tqdm(filtered.iterrows(), total=total_images, desc=f"{PURPLE}Processing images{RESET}", ncols=100):
-        counter += 1
-
+    def process_single_image(row):
         img_id = row['img_id']
         patient_id = row['patient_id']
         cancer = row['cancer']
-
         img_path = os.path.join(image_dir, img_id)
         mask_filename = img_id.replace('.png', '_mask.png')
         mask_path = os.path.join(mask_dir, mask_filename)
-
-        try:#validity check for image and mask existence
+        try:
             img = cv2.imread(img_path)
             if img is None:
                 print(f"{RED}Error: Image not found or corrupted - {img_id}{RESET}")
-                continue
+                return None
             img_rgb = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
             img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
             mask = cv2.imread(mask_path, cv2.IMREAD_GRAYSCALE)
             if mask is None:
                 print(f"{RED}Error: Mask not found or corrupted - {img_id}{RESET}")
-                continue
-
+                return None
             coverage = hair_coverage(img_gray, mask)
             img_clean = removeHair(img_rgb, img_gray)
             img_clean = enhance_color_hsv_clahe(img_clean)
-
             asymmetry = mean_asymmetry(mask)
             border = B_compactness(mask)
             color_vector = get_color_vector(img_clean, mask)
             texture = mean_gradient(img, mask)
-
             result = {
                 'patient_id': patient_id,
                 'img_id': img_id,
@@ -100,12 +92,16 @@ def feature_extraction_extended(metadata_path, image_dir, mask_dir, good_pics_pa
                 'texture': texture,
                 **color_vector
             }
-
-            rows.append(result)
-
+            return result
         except Exception as e:
             print(f"{RED}Failed processing {img_id}: {e}{RESET}")
-            continue
+            return None
+
+    print(f"{PURPLE}Starting feature extraction for each image...{RESET}")
+    rows = []
+    with concurrent.futures.ThreadPoolExecutor() as executor:
+        results = list(tqdm(executor.map(process_single_image, [row for _, row in filtered.iterrows()]), total=total_images, desc=f"{PURPLE}Processing images{RESET}", ncols=100))
+    rows = [r for r in results if r is not None]
 
     print(f"\n{PURPLE}Creating features DataFrame...{RESET}")
     features_df = pd.DataFrame(rows)
@@ -113,7 +109,6 @@ def feature_extraction_extended(metadata_path, image_dir, mask_dir, good_pics_pa
     print(f"{GREEN}Successfully processed {len(features_df)} images{RESET}")
     print(f"{GREEN}Features saved to: {Path(result_dir) / 'feature_dataset_extended.csv'}{RESET}")
     return features_df
-
 
 if __name__ == "__main__":
     # base_dir = Path(__file__).parent.resolve()

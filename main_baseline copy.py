@@ -119,7 +119,7 @@ def main_baseline_with_data(feature_path, result_dir, model_path=None):
 
     # Ensure result_dir exists before saving any results
     Path(result_dir).mkdir(parents=True, exist_ok=True)
-    prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_baseline.png', name2='result_baseline2.csv')
+    prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_baseline.png', name2='result_baseline.csv')
 
     print(f"Results saved to: {result_dir}")
 

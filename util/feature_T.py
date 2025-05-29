@@ -11,7 +11,6 @@ def mean_gradient(image, mask):
     
     gradient_magnitude = np.sqrt(sobelx**2 + sobely**2)
 
-    # Rest of your code
     gradient_magnitude = gradient_magnitude[mask > 0]
     mean_gradient = np.mean(gradient_magnitude)
     

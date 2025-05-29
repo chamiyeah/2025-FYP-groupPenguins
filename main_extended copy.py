@@ -5,7 +5,7 @@ import joblib
 import matplotlib.pyplot as plt
 import cv2
 from tqdm import tqdm
-from util.feature_extraction_ex2 import feature_extraction_extended
+from util.feature_extraction_ext import feature_extraction_extended
 from sklearn.metrics import (
     accuracy_score, recall_score, roc_auc_score,
     precision_score, f1_score, ConfusionMatrixDisplay
