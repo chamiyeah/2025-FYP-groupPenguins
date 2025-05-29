@@ -1,4 +1,6 @@
 import pandas as pd
+import sys
+import os
 import numpy as np
 from sklearn.model_selection import train_test_split, GroupKFold, cross_val_score
 from sklearn.preprocessing import StandardScaler
@@ -12,6 +14,7 @@ from sklearn.metrics import (
     precision_score, f1_score, ConfusionMatrixDisplay
 )
 
+sys.path.append(os.path.abspath('..'))
 ########### DATA LOADING ############################################################################################################
 
 def load_and_splitbypatient(data, features):
@@ -122,7 +125,7 @@ def cross_validation(data, features, max_depth, visualize = True, save = True):
     summary_df = pd.DataFrame(summary)
 
     if save: 
-        summary_df.to_csv("../result/cross_val_DT_baseline.csv", index=False)
+        summary_df.to_csv("result/cross_val_DT_baseline.csv", index=False)
 
     if visualize:
         plt.errorbar(summary_df['max_depth'], summary_df['mean_auc'], yerr=summary_df['std_auc'], fmt='-o')
@@ -130,7 +133,7 @@ def cross_validation(data, features, max_depth, visualize = True, save = True):
         plt.ylabel("Mean AUC (±1 std)")
         plt.title("Decision Tree, Cross-Validation for depth determination")
         plt.grid(True)
-        plt.savefig("../result/cross_val_DT_baseline.png", dpi=300) 
+        plt.savefig("result/cross_val_DT_baseline.png", dpi=300) 
         plt.show()
 
     return summary_df, cancer_balance
@@ -158,6 +161,12 @@ def model_training(data, features):
 
     #training set labels and features, 80% patients
     X_train, y_train = X[train_idx], y[train_idx] #train_idx defined before for patients in training data
+
+    # Print class balance information
+    print("\nTraining Set Balance:")
+    print(f"Total samples in training set: {len(y_train)}")
+    print(f"Non-cancerous cases (0): {sum(y_train == 0)} ({sum(y_train == 0)/len(y_train)*100:.2f}%)")
+    print(f"Cancerous cases (1): {sum(y_train == 1)} ({sum(y_train == 1)/len(y_train)*100:.2f}%)\n")
 
     pipe = make_pipeline(
         StandardScaler(),  

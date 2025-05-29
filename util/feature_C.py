@@ -250,7 +250,7 @@ def get_color_vector(image, mask, downsizing_factor = 0.4, n_segments = 50, comp
             'mean_H': np.nan, 'std_H': np.nan,
             'mean_S': np.nan, 'std_S': np.nan,
             'mean_V': np.nan, 'std_V': np.nan,
-            'color_entropy': np.nan, 'dominant_colors': np.nan
+            'color_entropy': np.nan, 'melanoma_colors': np.nan
         }
 
     image, mask = downsizing(image, mask, downsizing_factor)

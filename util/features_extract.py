@@ -68,7 +68,7 @@ def feature_extraction(metadata, image_dir, mask_dir, good_pics, result_dir, fil
             #feature extraction
             asymmetry = mean_asymmetry(mask)
             border = B_compactness(mask)
-            color_vector = get_color_vector(img, mask)  # dict with 6 color features
+            color_vector = get_color_vector(img, mask) 
             texture = mean_gradient(img, mask)
 
             result = {
