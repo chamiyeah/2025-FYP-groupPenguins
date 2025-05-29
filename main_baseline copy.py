@@ -64,6 +64,7 @@ def main_baseline(image_dir, mask_dir, metadata_path, process_images, result_dir
     prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_baseline.png', name2='result_baseline.csv')
 
     #Result overview directory
+    Path(result_dir).mkdir(parents=True, exist_ok=True)
     print(f'Results saved to result directory')
 
 ################################################################################################################
@@ -115,6 +116,7 @@ def main_baseline_with_data(feature_path, result_dir, model_path=None):
         joblib.dump(pipe, model_path)
         print(f"Trained model saved to: {model_path}")
 
+    Path(result_dir).mkdir(parents=True, exist_ok=True)
     prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_baseline.png', name2='result_baseline.csv')
 
     print(f"Results saved to: {result_dir}")
