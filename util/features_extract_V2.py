@@ -14,7 +14,7 @@ from tqdm import tqdm
 from feature_A import mean_asymmetry
 from feature_B import B_compactness
 from feature_C import get_color_vector, melanoma_color_labels
-from image_preprocessing import enhance_color_hsv_clahe
+from image_util import enhance_color_hsv_clahe
 
 
 def process_single_image(row_data, image_dir, mask_dir):

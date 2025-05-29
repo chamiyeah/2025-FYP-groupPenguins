@@ -6,7 +6,7 @@ import pandas as pd
 from util.feature_A import mean_asymmetry
 from util.feature_B import B_compactness
 from util.feature_C import get_color_vector
-from util.image_preprocessing import enhance_color_hsv_clahe
+from util.image_util import enhance_color_hsv_clahe
 
 # image_dir = 'data/skin_images/original/'
 # mask_dir = 'data/lesion_masks/'
