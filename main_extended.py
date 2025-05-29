@@ -14,7 +14,7 @@ from sklearn.metrics import (
 
 ##########################################################################################################################################
 #use when csv of extracted features is not provided and we want to extract features, train the model and evaluate its performance
-def main_baseline(image_dir, mask_dir, metadata_path, process_images, result_dir):
+def main_extended(image_dir, mask_dir, metadata_path, process_images, result_dir):
     """
     Works the same as a baseline model just with corrected feature extraction function that extracts hair feature
     before hair removal is applied and later extracts all the baseline features.
@@ -69,12 +69,12 @@ if __name__ == "__main__":
     process_images = base_dir / 'correct_mask_list.csv'
     result_dir = base_dir / "result"
 
-    main_baseline(image_dir, mask_dir, metadata_path, process_images, result_dir)
+    main_extended(image_dir, mask_dir, metadata_path, process_images, result_dir)
 
 ################################################################################################################
 #when csv is provided, so we do just training and saving trained model + returning evaluation of the trained model
 
-def main_baseline_with_data(feature_path, result_dir, model_path=None):
+def main_extended_with_data(feature_path, result_dir, model_path=None):
 
     result_dir = Path(result_dir)
     feature_path = Path(feature_path)
@@ -108,7 +108,7 @@ if __name__ == "__main__":
     feature_path = result_dir / "feature_dataset.csv" 
     model_path = result_dir / "trained_DT_extended.joblib"  
 
-    main_baseline_with_data(feature_path, result_dir, model_path=model_path)
+    main_extended_with_data(feature_path, result_dir, model_path=model_path)
 
 
 #########################################################################################################################
@@ -116,7 +116,7 @@ if __name__ == "__main__":
 #when ran again on all data that it was trained on and tested on the results will not be perfect because function 
 #is not filtering good images and it havent seen test data, so it works only on dataset that has: good masks and one lesion per image
 
-def evaluate_model_on_unseen_all(image_dir, mask_dir, metadata_path, model_path, result_dir):
+def evaluate_unseen_extended(image_dir, mask_dir, metadata_path, model_path, result_dir):
 
     image_dir = Path(image_dir)
     mask_dir = Path(mask_dir)
@@ -207,7 +207,7 @@ def evaluate_model_on_unseen_all(image_dir, mask_dir, metadata_path, model_path,
 if __name__ == "__main__":
     base_dir = Path(__file__).parent.resolve()
 
-    evaluate_model_on_unseen_all(
+    evaluate_unseen_extended(
         image_dir=base_dir / "data" / "skin_images" / "original",
         mask_dir=base_dir / "data" / "lesion_masks",
         metadata_path=base_dir / "dataset.csv",
