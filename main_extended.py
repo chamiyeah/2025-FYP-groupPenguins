@@ -4,11 +4,19 @@ from pathlib import Path
 import joblib
 import matplotlib.pyplot as plt
 import cv2
+from tqdm import tqdm
 #from util.features_extract_extended import feature_extraction_extended
 from sklearn.metrics import (
     accuracy_score, recall_score, roc_auc_score,
     precision_score, f1_score, ConfusionMatrixDisplay
 )
+
+# ANSI color codes for terminal output
+YELLOW = '\033[93m'
+PURPLE = '\033[95m'
+GREEN = '\033[92m'
+RED = '\033[91m'
+RESET = '\033[0m'
 
 #Read before running: this file contains 3 scripts, chose one accordingly
 
@@ -84,30 +92,37 @@ from sklearn.metrics import (
 
 def main_extended_with_data(feature_path, result_dir, model_path=None):
 
+    print(f"{YELLOW}Initializing extended model analysis...{RESET}")
     result_dir = Path(result_dir)
     feature_path = Path(feature_path)
 
     try:
+        print(f"{YELLOW}Loading feature dataset from: {feature_path.name}{RESET}")
         data = pd.read_csv(feature_path)
+        print(f"{GREEN}Successfully loaded feature dataset with {len(data)} samples{RESET}")
     except FileNotFoundError as e:
-        print(f"Error loading extracted features CSV: {str(e)}")
+        print(f"{RED}Error loading extracted features CSV: {str(e)}{RESET}")
         return
 
-    print(f"Using extracted features from: {feature_path.name}")
-
     features = ['hair_coverage', 'border', 'asymmetry', 'mean_H', 'std_H', 'mean_S', 'std_S', 'mean_V', 'std_V', 'color_entropy', 'melanoma_colors']
+    print(f"{PURPLE}Using {len(features)} features for model training:{RESET}")
+    for feature in tqdm(features, desc=f"{PURPLE}Features{RESET}", ncols=100):
+        print(f"{PURPLE}  - {feature}{RESET}")
 
+    print(f"\n{PURPLE}Training model...{RESET}")
     pipe = model_training(data, features)
 
     #save model if model_path is specified
     if model_path:
         model_path = Path(model_path)
+        print(f"{PURPLE}Saving trained model...{RESET}")
         joblib.dump(pipe, model_path)
-        print(f"Trained model saved to: {model_path}")
+        print(f"{GREEN}Trained model saved to: {model_path}{RESET}")
 
+    print(f"{PURPLE}Evaluating model performance...{RESET}")
     prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_extended.png', name2='result_extended.csv')
 
-    print(f"Results saved to: {result_dir}")
+    print(f"{GREEN}Results successfully saved to: {result_dir}{RESET}")
 
 
 if __name__ == "__main__":

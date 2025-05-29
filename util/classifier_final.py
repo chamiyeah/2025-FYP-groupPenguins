@@ -14,6 +14,13 @@ from sklearn.metrics import (
     precision_score, f1_score, ConfusionMatrixDisplay
 )
 
+# ANSI color codes for terminal output
+YELLOW = '\033[93m'
+PURPLE = '\033[95m'
+GREEN = '\033[92m'
+RED = '\033[91m'
+RESET = '\033[0m'
+
 sys.path.append(os.path.abspath('..'))
 ########### DATA LOADING ############################################################################################################
 
@@ -42,6 +49,8 @@ def load_and_splitbypatient(data, features):
             Boolean mask to select testing rows (20% of all patients)
     """
 
+    print(f"{YELLOW}Loading and preprocessing dataset...{RESET}")
+
     data.dropna(inplace=True) #drop rows with Nan in features dataframe
     data['cancer'] = data['cancer'].astype(int) #convert bool to binary
 
@@ -52,14 +61,15 @@ def load_and_splitbypatient(data, features):
     groups = data['patient_id']
     unique_patients = data['patient_id'].unique() #number of unique patients
 
+    print(f"{PURPLE}Splitting dataset by patient ID (80-20 split)...{RESET}")
     #split into training and testing considering patient id, 80% patients in training and 20% in test (patients distribution tested before)
     train_ids, test_ids = train_test_split(unique_patients, test_size=0.2, random_state=42) 
 
     #using training set for cross validation
     train_idx = data['patient_id'].isin(train_ids)#selecting patients in that are in training set
-
     test_idx = data['patient_id'].isin(test_ids) 
 
+    print(f"{GREEN}Data split complete: {len(train_ids)} training patients, {len(test_ids)} test patients{RESET}")
     return X, y, groups, train_idx, test_idx
 
 ########## CROSS VALIDATION #################################################################################################################
@@ -94,6 +104,8 @@ def cross_validation(data, features, max_depth, visualize = True, save = True):
             Percentage of cancer cases in the training set, just a check
     """
 
+    print(f"{YELLOW}Starting cross-validation process...{RESET}")
+    
     X, y, groups, train_idx, _ = load_and_splitbypatient(data, features)
 
     X_train, y_train = X[train_idx], y[train_idx] #getting training set patients features and labels
@@ -101,6 +113,7 @@ def cross_validation(data, features, max_depth, visualize = True, save = True):
 
     #checking balance
     cancer_balance = round(y_train.sum()/len(X_train)*100)
+    print(f"{PURPLE}Cancer balance in training set: {cancer_balance}%{RESET}")
 
     max_depth_values = range(1, max_depth) 
     cv = GroupKFold(n_splits=5)
@@ -108,7 +121,9 @@ def cross_validation(data, features, max_depth, visualize = True, save = True):
     summary = [] #max_depth values with mean AUC and STDs
 
     #cross validation loop
+    print(f"{PURPLE}Starting cross-validation for different tree depths...{RESET}")
     for depth in max_depth_values:
+        print(f"{PURPLE}Testing tree depth: {depth}{RESET}")
         clf = make_pipeline(
             StandardScaler(),  #not crutial for decision tree, but added for consistency
             DecisionTreeClassifier(max_depth=depth, random_state=42)
@@ -120,20 +135,25 @@ def cross_validation(data, features, max_depth, visualize = True, save = True):
         mean_auc = np.mean(auc_scores)
         std_auc = np.std(auc_scores)
         summary.append({'max_depth': depth, 'mean_auc': mean_auc, 'std_auc': std_auc})
+        print(f"{GREEN}Depth {depth}: Mean AUC = {mean_auc:.4f} (±{std_auc:.4f}){RESET}")
 
     #result for cross validation
     summary_df = pd.DataFrame(summary)
 
     if save: 
+        print(f"{PURPLE}Saving cross-validation results...{RESET}")
         summary_df.to_csv("result/cross_val_DT_baseline.csv", index=False)
+        print(f"{GREEN}Results saved to cross_val_DT_baseline.csv{RESET}")
 
     if visualize:
+        print(f"{PURPLE}Generating visualization plot...{RESET}")
         plt.errorbar(summary_df['max_depth'], summary_df['mean_auc'], yerr=summary_df['std_auc'], fmt='-o')
         plt.xlabel("Tree Depth")
         plt.ylabel("Mean AUC (±1 std)")
         plt.title("Decision Tree, Cross-Validation for depth determination")
         plt.grid(True)
         plt.savefig("result/cross_val_DT_baseline.png", dpi=300) 
+        print(f"{GREEN}Plot saved as cross_val_DT_baseline.png{RESET}")
         plt.show()
 
     return summary_df, cancer_balance
@@ -157,23 +177,26 @@ def model_training(data, features):
         pipe : sklearn.pipeline.Pipeline
             A fitted pipeline containing a StandardScaler and DecisionTreeClassifier with chosen depth
     """
+    print(f"{YELLOW}Initializing model training...{RESET}")
+    
     X, y, _, train_idx, _ = load_and_splitbypatient(data, features)
 
     #training set labels and features, 80% patients
     X_train, y_train = X[train_idx], y[train_idx] #train_idx defined before for patients in training data
 
-    # Print class balance information
-    print("\nTraining Set Balance:")
-    print(f"Total samples in training set: {len(y_train)}")
-    print(f"Non-cancerous cases (0): {sum(y_train == 0)} ({sum(y_train == 0)/len(y_train)*100:.2f}%)")
-    print(f"Cancerous cases (1): {sum(y_train == 1)} ({sum(y_train == 1)/len(y_train)*100:.2f}%)\n")
+    print(f"\n{PURPLE}Training Set Balance:{RESET}")
+    print(f"{PURPLE}Total samples in training set: {len(y_train)}{RESET}")
+    print(f"{PURPLE}Non-cancerous cases (0): {sum(y_train == 0)} ({sum(y_train == 0)/len(y_train)*100:.2f}%){RESET}")
+    print(f"{PURPLE}Cancerous cases (1): {sum(y_train == 1)} ({sum(y_train == 1)/len(y_train)*100:.2f}%){RESET}\n")
 
+    print(f"{PURPLE}Training Decision Tree classifier (max_depth=4)...{RESET}")
     pipe = make_pipeline(
         StandardScaler(),  
         DecisionTreeClassifier(max_depth=4, random_state=42)
     )
 
     pipe.fit(X_train, y_train)
+    print(f"{GREEN}Model training completed successfully{RESET}")
 
     return pipe
 
@@ -217,11 +240,14 @@ def prediction_evaluation(data, features, pipe, result_dir, name1, name2):
     - probability: model predicted probability of cancer
     """
 
+    print(f"{YELLOW}Starting model evaluation...{RESET}")
+
     X, y, groups, _, test_mask = load_and_splitbypatient(data, features)
 
     #test set labels and features, 20% patients
     X_test, y_test = X[test_mask], y[test_mask]
 
+    print(f"{PURPLE}Generating predictions on test set...{RESET}")
     y_pred = pipe.predict(X_test) #automatically applies a default threshold of 0.5, used for False negatives investingation
     y_prob = pipe.predict_proba(X_test)[:, 1]
 
@@ -236,13 +262,14 @@ def prediction_evaluation(data, features, pipe, result_dir, name1, name2):
     patient_ids_test = groups[test_mask]
     image_ids_test = data['img_id'][test_mask]
 
-    print("Metrics on test set:")
-    print(f"Accuracy:  {acc:.4f}")
-    print(f"Recall:    {rec:.4f}")
-    print(f"AUC:       {auc:.4f}")
-    print(f"Precision: {prec:.4f}")
-    print(f"F1 Score:  {f1:.4f}")
+    print(f"\n{GREEN}Metrics on test set:{RESET}")
+    print(f"{GREEN}Accuracy:  {acc:.4f}{RESET}")
+    print(f"{GREEN}Recall:    {rec:.4f}{RESET}")
+    print(f"{GREEN}AUC:       {auc:.4f}{RESET}")
+    print(f"{GREEN}Precision: {prec:.4f}{RESET}")
+    print(f"{GREEN}F1 Score:  {f1:.4f}{RESET}")
 
+    print(f"\n{PURPLE}Generating confusion matrix...{RESET}")
     #confusion matrix
     ConfusionMatrixDisplay.from_predictions(
         y_test, y_pred,
@@ -253,6 +280,7 @@ def prediction_evaluation(data, features, pipe, result_dir, name1, name2):
     plt.title("Confusion Matrix of decision tree (depth=4)")
     plt.grid(False)
     plt.savefig(result_dir / name1, dpi=300) 
+    print(f"{GREEN}Confusion matrix saved as {name1}{RESET}")
     plt.show()
 
     #results
@@ -264,8 +292,10 @@ def prediction_evaluation(data, features, pipe, result_dir, name1, name2):
     })
 
     #check for balance, because we excluded Nan features
-    print(f'Total number of images in test set: {len(results_df)}')
-    print(f'True cancerous images in test set: {len(results_df[results_df['label']==1])}')
-    print(f'True non-cancerous images in test set: {len(results_df[results_df['label']==0])}')
+    print(f"\n{PURPLE}Test Set Statistics:{RESET}")
+    print(f"{PURPLE}Total number of images in test set: {len(results_df)}{RESET}")
+    print(f"{PURPLE}True cancerous images in test set: {len(results_df[results_df['label']==1])}{RESET}")
+    print(f"{PURPLE}True non-cancerous images in test set: {len(results_df[results_df['label']==0])}{RESET}")
     
     results_df.to_csv(result_dir / name2, index=False)
+    print(f"{GREEN}Results saved as {name2}{RESET}")
