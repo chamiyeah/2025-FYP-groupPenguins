@@ -149,7 +149,7 @@ def cross_validation(data, features, max_depth, visualize=True, save=True):
     summary_df = pd.DataFrame(summary)
 
     if save: 
-        summary_df.to_csv("../result/cross_val_DT_baseline.csv", index=False)
+        summary_df.to_csv("result/cross_val_DT_baseline.csv", index=False)
 
     if visualize:
         plt.errorbar(summary_df['max_depth'], summary_df['mean_auc'], yerr=summary_df['std_auc'], fmt='-o')
@@ -157,7 +157,7 @@ def cross_validation(data, features, max_depth, visualize=True, save=True):
         plt.ylabel("Mean AUC (±1 std)")
         plt.title("Decision Tree, Cross-Validation for depth determination")
         plt.grid(True)
-        plt.savefig("../result/cross_val_DT_baseline.png", dpi=300) 
+        plt.savefig("result/cross_val_DT_baseline.png", dpi=300) 
         plt.show()
 
     return summary_df, cancer_balance
