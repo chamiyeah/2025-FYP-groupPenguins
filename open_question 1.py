@@ -4,39 +4,29 @@ from pathlib import Path
 import joblib
 import matplotlib.pyplot as plt
 
-# ANSI color codes
-YELLOW = '\033[93m'
-PURPLE = '\033[95m'
-GREEN = '\033[92m'
-RED = '\033[91m'
-RESET = '\033[0m'
+
 
 def main_baseline_extra_feature(feature_path, result_dir):
-    print(f"{YELLOW}Initializing baseline feature analysis...{RESET}")
-    
+
     result_dir = Path(result_dir)
     feature_path = Path(feature_path)
 
     try:
-        print(f"{YELLOW}Loading feature dataset from: {feature_path.name}{RESET}")
         data = pd.read_csv(feature_path)
-        print(f"{GREEN}Successfully loaded feature dataset with {len(data)} samples{RESET}")
     except FileNotFoundError as e:
-        print(f"{RED}Error loading extracted features CSV: {str(e)}{RESET}")
+        print(f"Error loading extracted features CSV: {str(e)}")
         return
 
-    print(f"{YELLOW}Using extracted features from: {feature_path.name}{RESET}")
+    print(f"Using extracted features from: {feature_path.name}")
 
     features = ['border', 'asymmetry', 'texture', 'mean_H', 'std_H', 'mean_S', 'std_S', 'mean_V', 'std_V', 'color_entropy', 'melanoma_colors']#'hair_coverage' we exclude since baseline was better
-    print(f"{PURPLE}Training model with {len(features)} features...{RESET}")
 
     pipe = model_training(data, features)
-    print(f"{GREEN}Model training completed successfully{RESET}")
 
-    print(f"{PURPLE}Evaluating model predictions...{RESET}")
     prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_open.png', name2='result_open.csv')
 
-    print(f"{GREEN}Results saved successfully to: {result_dir}{RESET}")
+    print(f"Results saved to: {result_dir}")
+
 
 if __name__ == "__main__":
     base_dir = Path(__file__).parent.resolve()
