@@ -1,0 +1,31 @@
+import os
+import pandas as pd
+
+# Caminhos — AJUSTADOS conforme suas pastas do projeto
+csv_path = "mask_making/correct_mask_list.csv"
+mask_folder = "data/new_masks/masks"
+output_path = "data/mask_making/final_list.csv"
+
+# Carrega o CSV existente
+df = pd.read_csv(csv_path)
+
+# Garante que a coluna se chama 'Filename'
+if df.columns[0] != 'Filename':
+    df.columns = ['Filename']
+
+# Lista todos os arquivos da pasta masks
+mask_files = sorted(f for f in os.listdir(mask_folder) if f.endswith("_mask.png"))
+
+# Remove o sufixo '_mask' para transformar em nomes .png
+new_filenames = [f.replace("_mask.png", ".png") for f in mask_files]
+
+# Cria um novo DataFrame com os novos nomes
+new_df = pd.DataFrame(new_filenames, columns=["Filename"])
+
+# Adiciona ao final do CSV existente
+final_df = pd.concat([df, new_df], ignore_index=True)
+
+# Salva como novo CSV
+final_df.to_csv(output_path, index=False)
+print(f"✅ Adicionados {len(new_filenames)} nomes. CSV salvo como: {output_path}")
+print(f"✅ Adicionados {len(new_filenames)} nomes. Total no CSV final: {len(final_df)}.")

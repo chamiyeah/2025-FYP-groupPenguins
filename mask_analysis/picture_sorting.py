@@ -1,6 +1,7 @@
 import os
 import pandas as pd
 import shutil
+import csv
 
 # Sorts the images and masks into files based on the mask analysis file after being filled out
 # Images divided into: Filtered images if they are fine, or excluded images if they were deemed unfit for the project
@@ -12,7 +13,7 @@ base_path = os.path.dirname(__file__)
 
 csv_path = os.path.join(base_path, "mask_analysis.csv")
 images_path = os.path.abspath(os.path.join(base_path, "..", "data", "skin_images"))
-masks_path = os.path.abspath(os.path.join(base_path, "..", "masked_out_lesions"))
+masks_path = os.path.abspath(os.path.join(base_path, "..","data", "masks_total"))
 
 excluded_path = os.path.abspath(os.path.join(base_path, "..", "data", "Excluded_Images"))
 filtered_path = os.path.abspath(os.path.join(base_path, "..", "data", "Filtered_Images"))
@@ -40,6 +41,13 @@ for _, row in df.iterrows():
 
     shutil.copy2(src, dst)
 
+# Load the correct mask list from CSV (normalize to lowercase, strip)
+correct_mask_list_path = os.path.join(base_path, '..', 'mask_making', 'final_list.csv')
+with open(correct_mask_list_path, newline='') as csvfile:
+    reader = csv.reader(csvfile)
+    next(reader)  # skip header if present
+    correct_mask_set = set(row[0].strip().lower() for row in reader if row)
+
 for _, row in df.iterrows():
     filename = row["Filename"]
     name, ext = os.path.splitext(filename)
@@ -48,11 +56,12 @@ for _, row in df.iterrows():
 
     if not os.path.exists(src_mask):
         continue
-    
-    if row["Remake mask"] == 1:
-        dst_mask = os.path.join(masks_bad_path, mask_name)
-    else:
+
+    # Decide destination based on presence in correct mask list
+    if filename.strip().lower() in correct_mask_set:
         dst_mask = os.path.join(masks_good_path, mask_name)
+    else:
+        dst_mask = os.path.join(masks_bad_path, mask_name)
 
     shutil.copy2(src_mask, dst_mask)
 
