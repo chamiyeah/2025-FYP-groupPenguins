@@ -1,3 +1,8 @@
+import sys
+from pathlib import Path
+sys.path.append(str(Path(__file__).parent.resolve()))
+sys.path.append(str(Path(__file__).parent.parent.resolve()))
+
 import pandas as pd
 from util.features_extract_baseline import feature_extraction
 from util.classifier_final import prediction_evaluation, model_training
