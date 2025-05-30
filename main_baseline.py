@@ -1,17 +1,15 @@
 import pandas as pd
-from util.features_extract import feature_extraction
+from util.features_extract_baseline import feature_extraction
 from util.classifier_final import prediction_evaluation, model_training
 from pathlib import Path
 import joblib
 import matplotlib.pyplot as plt
 import cv2
-from util.features_extract import feature_extraction
 from sklearn.metrics import (
     accuracy_score, recall_score, roc_auc_score,
     precision_score, f1_score, ConfusionMatrixDisplay
 )
 
-#file contains 3 scripts, chose one accordingly
 #########################################################################################################################
 #Script 1
 # when csv of extracted features is not provided and we want to train the model and evaluate its performance
@@ -61,21 +59,13 @@ def main_baseline(image_dir, mask_dir, metadata_path, process_images, result_dir
     #Training decsion tree model using selected features
     pipe = model_training(data, features)
 
+    #Ensure result_dir exists before saving any results
+    Path(result_dir).mkdir(parents=True, exist_ok=True)
+
     #Predicting labels and evaluating on test set our trained model pipe
     prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_baseline.png', name2='result_baseline.csv')
 
-    #Result overview directory
     print(f'Results saved to result directory')
-
-if __name__ == "__main__":
-    base_dir = Path(__file__).parent.resolve()
-    image_dir = base_dir / 'data' / 'skin_images' / 'original'
-    mask_dir = base_dir / 'data' / 'lesion_masks'
-    metadata_path = base_dir / 'dataset.csv'
-    process_images = base_dir / 'correct_mask_list.csv'
-    result_dir = base_dir / "result"
-
-    main_baseline(image_dir, mask_dir, metadata_path, process_images, result_dir)
 
 ################################################################################################################
 #Script 2
@@ -126,18 +116,11 @@ def main_baseline_with_data(feature_path, result_dir, model_path=None):
         joblib.dump(pipe, model_path)
         print(f"Trained model saved to: {model_path}")
 
+    # Ensure result_dir exists before saving any results
+    Path(result_dir).mkdir(parents=True, exist_ok=True)
     prediction_evaluation(data, features, pipe, result_dir, name1='confusion_matrix_baseline.png', name2='result_baseline.csv')
 
     print(f"Results saved to: {result_dir}")
-
-if __name__ == "__main__":
-    base_dir = Path(__file__).parent.resolve()
-    result_dir = base_dir / "result"
-    feature_path = result_dir / "feature_dataset.csv"  
-    model_path = result_dir / "trained_decision_tree_model.joblib" 
-
-    main_baseline_with_data(feature_path, result_dir, model_path=model_path)
-
 
 # #########################################################################################################################
 #Script 3
@@ -239,12 +222,58 @@ def evaluate_model_on_unseen_all(
 
 
 if __name__ == "__main__":
+    import argparse
+    import sys
     base_dir = Path(__file__).parent.resolve()
+    parser = argparse.ArgumentParser(description="Run baseline model scripts.")
+    parser.add_argument('--script', type=int, choices=[1,2,3], help="Script to run: 1=extract+train+eval, 2=train+eval from csv, 3=eval on unseen data")
+    parser.add_argument('--feature_path', type=str, help="Path to extracted features CSV (for script 2)")
+    parser.add_argument('--model_path', type=str, help="Path to trained model (for script 2/3)")
+    # Only parse known args to avoid errors if running in notebook or with extra args
+    args, unknown = parser.parse_known_args()
 
-    evaluate_model_on_unseen_all(
-        image_dir=base_dir / "data" / "skin_images" / "original",
-        mask_dir=base_dir / "data" / "lesion_masks",
-        metadata_path=base_dir / "dataset.csv",
-        model_path=base_dir / "result" / "trained_decision_tree_model.joblib",
-        result_dir=base_dir / "result"
-    )
+    # Only prompt if running in an interactive terminal
+    if args.script is None and sys.stdin.isatty():
+        print("Which script do you want to run?")
+        print("1: Extract features, train, and evaluate")
+        print("2: Train and evaluate from existing features CSV")
+        print("3: Evaluate on unseen data with trained model")
+        while True:
+            try:
+                script_choice = int(input("Enter 1, 2, or 3: "))
+                if script_choice in [1,2,3]:
+                    break
+            except Exception:
+                pass
+            print("Invalid input. Please enter 1, 2, or 3.")
+    elif args.script is not None:
+        script_choice = args.script
+    else:
+        print("No --script argument provided and not running interactively. Exiting.")
+        sys.exit(1)
+
+    if script_choice == 1:
+        image_dir = base_dir / 'data' / 'skin_images' / 'original'
+        mask_dir = base_dir / 'data' / 'lesion_masks'
+        metadata_path = base_dir / 'dataset.csv'
+        process_images = base_dir / 'correct_mask_list.csv'
+        result_dir = base_dir / "result"
+        main_baseline(image_dir, mask_dir, metadata_path, process_images, result_dir)
+    elif script_choice == 2:
+        result_dir = base_dir / "result"
+        feature_path = Path(args.feature_path) if args.feature_path else (result_dir / "feature_dataset.csv")
+        model_path = Path(args.model_path) if args.model_path else (result_dir / "trained_decision_tree_model.joblib")
+        main_baseline_with_data(feature_path, result_dir, model_path=model_path)
+    elif script_choice == 3:
+        image_dir = base_dir / "data" / "skin_images" / "original"
+        mask_dir = base_dir / "data" / "lesion_masks"
+        metadata_path = base_dir / "dataset.csv"
+        model_path = Path(args.model_path) if args.model_path else (base_dir / "result" / "trained_decision_tree_model.joblib")
+        result_dir = base_dir / "result"
+        evaluate_model_on_unseen_all(
+            image_dir=image_dir,
+            mask_dir=mask_dir,
+            metadata_path=metadata_path,
+            model_path=model_path,
+            result_dir=result_dir
+        )
